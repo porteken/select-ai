@@ -19,15 +19,7 @@ if [[ "$tool" == "read_file" ]]; then
     exit 0
   fi
 
-  # Check for large files (e.g., > 100 lines)
-  LARGE_FILE_THRESHOLD=100
-  if [ -f "$path" ]; then # Ensure the path is a file before checking line count
-    line_count=$(wc -l < "$path")
-    if (( line_count > LARGE_FILE_THRESHOLD )); then
-      echo '{"cancel": true, "errorMessage": "⛔ Blocked: File exceeds 100 lines. Use `python3 ~/.cline/skills/code-navigator/smart_read.py <path> --start <start_line> --end <end_line>` or `--pattern <regex>` to read specific parts."}'
-      exit 0
-    fi
-  fi
+
 fi
 
 # --- PART 2: QUALITY GUARD (PRETTIER & LINT) ---
