@@ -1,25 +1,37 @@
 ---
 name: code-navigator
-description: Advanced file reading and searching to save tokens.
+description: MCP-first code discovery and surgical file reading to reduce token usage and hallucinations.
 ---
 
 # Code Navigator Protocol
 
-## 1. Search First (`rg`)
+## 1. Search first
 
-Never read a whole directory. Use `ripgrep` via `execute_command` to find exactly what you need.
+Never read broad file sets by default. Find symbols and call sites first.
 
-- **Find function def**: `rg "function login" src/`
-- **Find usage**: `rg "import .*Auth" src/`
+- Preferred: `desktop-commander` search tools (`start_search`, `get_more_search_results`).
+- Fast CLI fallback: `rg "function login" src/`, `rg "import .*Auth" src/`.
 
-## 2. Surgical Reading (`smart_read.py`)
+## 2. Surgical reading (`smart_read.py`)
 
-Never use `read_file` on files > 100 lines unless necessary.
-Use the python script to read chunks.
+Avoid full-file reads for files > 100 lines unless the whole file is truly required.
+Use the script to read exact ranges or regex matches.
 
-- **Command**: `python3 ~/.cline/skills/code-navigator/smart_read.py src/utils/helpers.ts 1 50`
-- **When to use**: When you need to see the imports or a specific function logic, but not the whole file.
+- Range read:
+  - `python3 ./.cline/skills/code-navigator/smart_read.py src/utils/helpers.ts --start 1 --end 80`
+- Pattern read with context:
+  - `python3 ./.cline/skills/code-navigator/smart_read.py src/utils/helpers.ts --pattern "useEffect|handleSubmit" --context 20`
 
-## 3. Project Map (`tree`)
+Use full `read_file` only when:
 
-To understand structure, run: `tree -L 2 --gitignore`
+- the file is small, or
+- cross-cutting edits need whole-file understanding.
+
+## 3. Edit strategy
+
+- Edit with `edit_block` when possible to minimize diff size.
+- Re-run search after edits to confirm references are still consistent.
+
+## 4. Project map
+
+To understand structure quickly, run: `tree -L 2 --gitignore`

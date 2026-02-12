@@ -1,19 +1,22 @@
-# Feature Implementation Workflow
+# General MCP Workflow
 
-**Usage**: `/feature.md "Add login page"`
+Usage: `Apply workflow: .clinerules/workflows/cline.md`
 
-1.  **Grounding Phase**
-    - [ ] Run `git-master` skill to check current branch state.
-    - [ ] Use `context-7` or `web-search` to fetch docs for relevant libraries (e.g., "NextAuth docs").
+1. Discovery
+   - [ ] Search first (`rg` or `desktop-commander` search).
+   - [ ] Read only targeted code ranges.
 
-2.  **Planning Phase**
-    - [ ] Create a file `PLAN.md` with step-by-step implementation details.
-    - [ ] Ask user for approval of the plan.
+2. Grounding
+   - [ ] Query `context-7` for external library APIs before implementation.
+   - [ ] Use `web-search` when information is time-sensitive or uncertain.
 
-3.  **Execution Phase**
-    - [ ] Use `desktop-commander` to create/edit files.
-    - [ ] **Linting**: Before finishing, run the `pre_tool_use.sh` check implicitly by trying to save.
+3. Implementation
+   - [ ] Make minimal edits (`edit_block` preferred).
+   - [ ] Keep diffs focused to task scope.
 
-4.  **Verification Phase**
-    - [ ] Run tests targeting _only_ the new feature.
-    - [ ] Use `git-master` to prepare the commit.
+4. Verification
+   - [ ] Run lint/tests/build appropriate to changed surface area.
+   - [ ] For UI changes, reproduce and verify with `playwright`.
+
+5. Report
+   - [ ] Summarize changed files, validation performed, and known risks.

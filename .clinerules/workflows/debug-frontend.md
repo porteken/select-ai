@@ -1,15 +1,17 @@
 # Frontend Debugging
 
-**Goal**: Fix a UI component bug.
+Goal: Fix a UI component bug with reproducible evidence.
 
-1.  **Locate Component**
-    - Use `rg "export const ComponentName"` to find the file.
-2.  **Capture Browser Context**:
-    - Use `playwright_evaluate` to capture console logs and browser state as per `cline.md`.
-3.  **Check Imports**
-    - Run `python3 ~/.cline/skills/code-navigator/smart_read.py <path> 1 20` to see what hooks/libraries are imported.
-4.  **Analyze Logic**
-    - Read _only_ the `useEffect` or handler causing the issue using `smart_read.py`.
-5.  **Fix & Lint**
-    - Apply fix.
-    - Run `npm run lint` immediately to verify formatting.
+1. Reproduce in browser
+   - [ ] Use `playwright` to navigate and trigger the bug in the smallest number of steps.
+2. Capture diagnostics
+   - [ ] Collect console output and failed network requests.
+   - [ ] Save screenshot/snapshot of failure state.
+3. Trace to source
+   - [ ] Use `rg` to find component/handler.
+   - [ ] Use `smart_read.py` for imports and the failing logic block only.
+4. Patch minimally
+   - [ ] Edit the smallest block that resolves the defect.
+5. Re-verify
+   - [ ] Re-run same browser steps.
+   - [ ] Run `npm run lint` and focused tests for the affected component if available.

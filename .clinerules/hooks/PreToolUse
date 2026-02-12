@@ -20,12 +20,26 @@ if [[ "$tool" == "read_file" ]]; then
   fi
 
 
+  # Require surgical reads for large files.
+  if [[ -f "$path" ]]; then
+    line_count=$(wc -l < "$path")
+    if [[ "$line_count" -gt 300 ]]; then
+      echo '{"cancel": true, "errorMessage": "⛔ Large file read blocked (>300 lines). Use `start_search` + targeted reads or smart_read.py ranges."}'
+      exit 0
+    fi
+  fi
 fi
 
 # --- PART 2: QUALITY GUARD (PRETTIER & LINT) ---
-if [[ "$tool" == "write_to_file" ]]; then
-  path=$(echo "$params" | jq -r '.path')
-  content=$(echo "$params" | jq -r '.content')
+if [[ "$tool" == "write_to_file" || "$tool" == "write_file" || "$tool" == "edit_block" ]]; then
+  path=$(echo "$params" | jq -r '.path // .target_file')
+  content=$(echo "$params" | jq -r '.content // .new_string')
+
+  # If path/content are missing, skip non-deterministic checks.
+  if [[ "$path" == "null" || "$content" == "null" ]]; then
+    echo '{"cancel": false}'
+    exit 0
+  fi
   
   # Determine extension
   ext="${path##*.}"

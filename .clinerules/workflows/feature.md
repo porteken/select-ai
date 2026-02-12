@@ -1,13 +1,12 @@
-# 🚀 Feature Implementation Workflow
+# Feature Workflow (MCP-grounded)
 
-**Usage**: `Apply workflow: .cline/workflows/feature.md`
+Usage: `Apply workflow: .clinerules/workflows/feature.md`
 
-- [ ] **Grounding**: Read `project_state.md` and check library docs via `context-7` or `web-search`.
-- [ ] **Planning**: Outline the architecture changes in the chat and wait for user confirmation.
-- [ ] **Surgical Read**: Identify existing logic using `smart_read.py`.
-- [ ] **Testing (TDD)**: Write failing unit/integration tests for the new feature.
-- [ ] **Drafting**: Write the code.
-- [ ] **Verification**:
-  - [ ] Run `npm run lint` or rely on the `pre_tool_use.sh` hook.
-  - [ ] Execute relevant unit tests via `execute_command`.
-- [ ] **Memory**: Update the `project_state.md` with the new feature details.
+- [ ] Clarify scope from user request and list acceptance criteria in chat.
+- [ ] Discover affected files with `rg` or `desktop-commander` search tools before reading.
+- [ ] Read only targeted code ranges (`smart_read.py` or targeted `read_file`) for the touched symbols.
+- [ ] Resolve relevant API docs with `context-7` before implementing third-party/library usage.
+- [ ] Implement the smallest safe change set with `edit_block` or targeted writes.
+- [ ] Add or update tests for the new behavior when test coverage exists.
+- [ ] Run verification commands for changed scope (`npm run lint`, focused tests, then build if needed).
+- [ ] Summarize what changed, what was verified, and any residual risks.
