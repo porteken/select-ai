@@ -8,6 +8,8 @@ params=$(echo "$input" | jq -r '.preToolUse.parameters // .args')
 # --- PART 1: TOKEN GUARD ---
 if [[ "$tool" == "read_file" ]]; then
   path=$(echo "$params" | jq -r '.path')
+
+  # Check for lockfiles and logs
   if [[ "$path" =~ (package-lock\.json|yarn\.lock|\.log) ]]; then
     if [[ "$path" == *.log ]]; then
        echo '{"cancel": true, "errorMessage": "⛔ Use `execute_command` with `tail -n 50` to read logs."}'
@@ -15,6 +17,16 @@ if [[ "$tool" == "read_file" ]]; then
     fi
     echo '{"cancel": true, "errorMessage": "⛔ Blocked: Reading lockfiles is token-expensive."}'
     exit 0
+  fi
+
+  # Check for large files (e.g., > 100 lines)
+  LARGE_FILE_THRESHOLD=100
+  if [ -f "$path" ]; then # Ensure the path is a file before checking line count
+    line_count=$(wc -l < "$path")
+    if (( line_count > LARGE_FILE_THRESHOLD )); then
+      echo '{"cancel": true, "errorMessage": "⛔ Blocked: File exceeds 100 lines. Use `python3 ~/.cline/skills/code-navigator/smart_read.py <path> --start <start_line> --end <end_line>` or `--pattern <regex>` to read specific parts."}'
+      exit 0
+    fi
   fi
 fi
 
@@ -33,6 +45,11 @@ if [[ "$tool" == "write_to_file" ]]; then
     
     # Check if Prettier is installed and configured
     if npx prettier --version >/dev/null 2>&1; then
+      # Check for .prettierrc existence
+      if [ ! -f ".prettierrc" ]; then
+        echo "ℹ️ Prettier is installed but no .prettierrc file found. Consider adding one for consistent formatting."
+      fi
+      
       # Run check
       if ! npx prettier --check "$temp_file" >/dev/null 2>&1; then
         rm "$temp_file"
@@ -48,6 +65,15 @@ if [[ "$tool" == "write_to_file" ]]; then
          echo '{"cancel": true, "errorMessage": "⚠️ ESLint syntax errors detected. Check your code logic and types."}'
          exit 0
        fi
+    fi
+
+    # Check TypeScript if TS/TSX
+    if [[ "$ext" =~ ^(ts|tsx)$ ]] && npx tsc --version >/dev/null 2>&1; then
+      if ! npx tsc --noEmit "$temp_file" >/dev/null 2>&1; then
+        rm "$temp_file"
+        echo '{"cancel": true, "errorMessage": "⚠️ TypeScript compilation errors detected. Check your types and syntax."}'
+        exit 0
+      fi
     fi
     rm "$temp_file"
   fi

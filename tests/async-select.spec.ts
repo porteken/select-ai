@@ -121,15 +121,14 @@ test.describe('Select Filter', () => {
     await expect(selectFilterTrigger).toBeVisible();
   });
 
-  test('should open dropdown and show all users when clicked', async ({ page }) => {
+  test('should open dropdown and show users with infinite scroll', async ({ page }) => {
     const selectFilterTrigger = page.locator('button:has-text("Search users...")').last();
     await selectFilterTrigger.click();
 
-    // Should show all users (preloaded)
-
+    // Should show first page of users (10 per page)
     const items = page.locator('[cmdk-item]');
-    // All 100 users should be visible in preload mode
-    await expect(items).toHaveCount(100);
+    // First page should have 10 users
+    await expect(items).toHaveCount(10);
   });
 
   test('should filter users when searching in Select Filter', async ({ page }) => {
