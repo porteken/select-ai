@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+# Read JSON input
+input=$(cat)
+tool=$(echo "$input" | jq -r '.preToolUse.toolName // .tool')
+params=$(echo "$input" | jq -r '.preToolUse.parameters // .args')
+
+# --- PART 1: TOKEN GUARD ---
+if [[ "$tool" == "read_file" ]]; then
+  path=$(echo "$params" | jq -r '.path')
+  if [[ "$path" =~ (package-lock\.json|yarn\.lock|\.log) ]]; then
+    if [[ "$path" == *.log ]]; then
+       echo '{"cancel": true, "errorMessage": "⛔ Use `execute_command` with `tail -n 50` to read logs."}'
+       exit 0
+    fi
+    echo '{"cancel": true, "errorMessage": "⛔ Blocked: Reading lockfiles is token-expensive."}'
+    exit 0
+  fi
+fi
+
+# --- PART 2: QUALITY GUARD (PRETTIER & LINT) ---
+if [[ "$tool" == "write_to_file" ]]; then
+  path=$(echo "$params" | jq -r '.path')
+  content=$(echo "$params" | jq -r '.content')
+  
+  # Determine extension
+  ext="${path##*.}"
+  
+  # Only check common code files
+  if [[ "$ext" =~ ^(js|ts|jsx|tsx|json|css|md|py)$ ]]; then
+    temp_file=$(mktemp).$ext
+    echo "$content" > "$temp_file"
+    
+    # Check if Prettier is installed and configured
+    if npx prettier --version >/dev/null 2>&1; then
+      # Run check
+      if ! npx prettier --check "$temp_file" >/dev/null 2>&1; then
+        rm "$temp_file"
+        echo '{"cancel": true, "errorMessage": "⚠️ Prettier formatting check failed. INSTRUCTION: Please run `npx prettier --write path/to/file` on this content before trying to write again, or ensure your output matches the project style (semi-colons, indentation, etc)."}'
+        exit 0
+      fi
+    fi
+
+    # Check ESLint if JS/TS
+    if [[ "$ext" =~ ^(js|ts|jsx|tsx)$ ]] && npx eslint --version >/dev/null 2>&1; then
+       if ! npx eslint "$temp_file" >/dev/null 2>&1; then
+         rm "$temp_file"
+         echo '{"cancel": true, "errorMessage": "⚠️ ESLint syntax errors detected. Check your code logic and types."}'
+         exit 0
+       fi
+    fi
+    rm "$temp_file"
+  fi
+fi
+
+echo '{"cancel": false}'
