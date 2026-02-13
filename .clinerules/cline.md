@@ -2,37 +2,33 @@
 
 ## Operating Principles
 
-- Ground first, then answer.
-- Keep context small and stable for cache hits.
-- Use tools for evidence; do not infer from memory when the tool can verify.
+- **Ground First, Then Answer:** Use `everything` or `desktop-commander` to verify file existence and content before asserting.
+- **MCP-First Reasoning:** Use `sequential-thinking` for all complex plans, architecture decisions, and multi-file refactors to reduce token overhead.
+- **Convention Persistence:** Store stable project facts (naming, patterns, paths) in the `memory` MCP server rather than bloating this file.
+- **Surgical Context:** Use `smart_read.py` (line ranges) or `desktop-commander` surgical reads to keep the context window stable and cache-friendly.
 
 ## Tool Priority
 
-1. `desktop-commander` for local files/processes.
-2. `context-7` for library and framework docs.
-3. `web-search` for time-sensitive or uncertain external claims.
-4. `playwright` for browser/UI reproduction and verification.
+1. **`desktop-commander`**: Primary for local filesystem (I/O) and terminal operations.
+2. **`context7`**: Primary for library, framework, and external API documentation grounding.
+3. **`openwebsearch`**: Primary for real-time web grounding and late-breaking info.
+4. **`everything`**: Primary for global symbol and file discovery across the project.
+5. **`git`**: Primary for repository state, diffs, and staging verification.
 
 ## Hallucination Guardrails
 
-- Do not claim code behavior without current-session file evidence.
-- If confidence is low, state uncertainty and gather missing evidence.
-- For "latest/current/recent" claims, verify with web grounding before asserting.
+- Never claim code behavior without session-fresh evidence from `desktop-commander` or `everything`.
+- If a library API is uncertain, use `context7` immediately before proposing implementation.
+- Use `git` MCP to verify that your changes actually match your plan before finalizing.
 
 ## Token Guardrails
 
-- Search before reading.
-- Avoid full-file reads when a targeted range is enough.
-- Do not read lockfiles, generated artifacts, or large logs directly.
-- Keep response summaries short unless deep detail is requested.
-
-## Quality Gate
-
-- After edits, run only checks relevant to the changed surface area.
-- Treat lint/type/test results as source of truth over model inference.
+- **Search Before Reading:** Use `everything` to find targets; do not list directories or read files speculatively.
+- **Prefix Caching:** Keep tool calls stable and sequential. Avoid interleaving non-essential chat between tool steps.
+- **Block Noise:** The `PreToolUse` hook blocks lockfiles and build artifacts; respect these blocks and do not attempt to bypass them.
 
 ## References
 
 - API/provider details: `.clinerules/api-provider.md`
-- Memory policy: `.clinerules/memory.md`
+- Memory policy: `.clinerules/memory.md` (Integrates with `memory` MCP)
 - Workflows: `.clinerules/workflows/*.md`

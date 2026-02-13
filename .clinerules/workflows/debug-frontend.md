@@ -8,10 +8,13 @@ Goal: Fix a UI component bug with reproducible evidence.
    - [ ] Collect console output and failed network requests.
    - [ ] Save screenshot/snapshot of failure state.
 3. Trace to source
-   - [ ] Use `rg` to find component/handler.
-   - [ ] Use `smart_read.py` for imports and the failing logic block only.
-4. Patch minimally
-   - [ ] Edit the smallest block that resolves the defect.
+   - [ ] Use `everything` to find the component, handler, or relevant CSS/logic.
+   - [ ] Use `smart_read.py` for failing logic blocks only.
+   - [ ] If the bug involves a library, use `context7` to verify correct API usage.
+4. Plan & Patch
+   - [ ] Use `sequential-thinking` to plan the minimal fix.
+   - [ ] Edit the smallest block that resolves the defect using `desktop-commander`.
 5. Re-verify
    - [ ] Re-run same browser steps.
-   - [ ] Run `npm run lint` and focused tests for the affected component if available.
+   - [ ] Use `git` MCP to review diffs and ensure no regressions.
+   - [ ] Run `npm run lint` and focused tests for the affected component.

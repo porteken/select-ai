@@ -4,7 +4,7 @@
   // 1. Strict Guidelines for Small Models
   "instructions": [
     "instructions.md",
-    "Verify every code change using 'mcp-language-server' diagnostics before finishing.",
+    "Verify every code change using 'cclsp' diagnostics (formerly mcp-language-server) before finishing.",
     "Use 'sequential-thinking' to break tasks into steps. Do not attempt large refactors in one go.",
     "Run 'git_status' and 'git_diff' after edits to confirm changes match your plan."
   ],
@@ -18,17 +18,18 @@
   // 4. MCP Servers (The "External Brain" Stack)
   "mcpServers": {
     // [CRITICAL] Grounding: Syntax & Type Checking
-    // Requires local installation of language servers (e.g., 'npm i -g typescript-language-server')
-    "mcp-language-server": {
+    // Replaced 'mcp-language-server' with 'cclsp' (Node-based LSP bridge).
+    // Note: 'cclsp' auto-detects languages but may require you to run 'npx cclsp setup' once if defaults fail.
+    "cclsp": {
       "type": "local",
-      "command": ["npx", "-y", "mcp-language-server"],
+      "command": ["npx", "-y", "cclsp"],
       "enabled": true
     },
     // [CRITICAL] Grounding: Git State & History
-    // Allows the model to see what it changed via 'git diff'
+    // Replaced 'mcp-server-git' with '@mseep/git-mcp-server' (Verified Node.js implementation).
     "git": {
       "type": "local",
-      "command": ["npx", "-y", "mcp-server-git"],
+      "command": ["npx", "-y", "@mseep/git-mcp-server"],
       "enabled": true
     },
     // [CRITICAL] Reasoning: Sequential Planning
@@ -39,14 +40,17 @@
       "enabled": true
     },
     // Documentation: Offline/Local RAG
-    // Index local docs without API keys
+    // Replaced Python 'local-faiss-mcp' with 'mcp-local-rag' (Node/LanceDB).
+    // Indexes the current directory (".") by default.
     "local-rag": {
       "type": "local",
-      "command": ["pipx", "run", "local-faiss-mcp"],
+      "command": ["npx", "-y", "mcp-local-rag"],
+      "env": {
+        "BASE_DIR": "."
+      },
       "enabled": true
     },
     // Documentation: Web Search (Lighter/Faster than Docker)
-    // Uses local browser automation to fetch docs
     "web-search": {
       "type": "local",
       "command": ["npx", "-y", "web-search-mcp"],

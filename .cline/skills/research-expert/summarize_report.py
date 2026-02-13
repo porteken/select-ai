@@ -3,17 +3,28 @@ import datetime
 import re
 
 def summarize_text(text, topic, max_sentences=5):
-    # Split text into sentences using common delimiters
-    sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s', text)
+    # Input validation
+    if not text or not isinstance(text, str):
+        return ""
+    if not topic or not isinstance(topic, str):
+        return text[:200] + ("..." if len(text) > 200 else "")
     
-    # Extract keywords from topic
-    keywords = set(word.lower() for word in re.findall(r'\b\w+\b', topic))
+    # Split text into sentences using improved delimiters
+    sentences = [s.strip() for s in re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=[.?!])\s+', text) if s.strip()]
+    
+    if not sentences:
+        return text[:200] + ("..." if len(text) > 200 else "")
+    
+    # Extract keywords from topic using improved word pattern
+    keywords = {word.lower() for word in re.findall(r"\b[\w'-]+\b", topic) if len(word) > 2}
     
     # Score sentences based on keyword presence
     scored_sentences = []
     for sentence in sentences:
-        score = sum(1 for word in re.findall(r'\b\w+\b', sentence.lower()) if word in keywords)
-        if score > 0: # Only consider sentences with at least one keyword
+        # Improved word matching that handles apostrophes and hyphens
+        words_in_sentence = {word.lower() for word in re.findall(r"\b[\w'-]+\b", sentence)}
+        score = len(words_in_sentence.intersection(keywords))
+        if score > 0:  # Only consider sentences with at least one keyword
             scored_sentences.append((score, sentence))
             
     # Sort sentences by score in descending order
@@ -25,8 +36,13 @@ def summarize_text(text, topic, max_sentences=5):
     if not summary_sentences:
         # Fallback to first few sentences if no keywords found
         summary_sentences = sentences[:max_sentences]
-
-    return "\n".join(summary_sentences) + ("\n...[summary truncated]..." if len(summary_sentences) < len(sentences) and len(sentences) > max_sentences else "")
+    
+    # Improved truncation message logic
+    truncation_msg = ""
+    if len(summary_sentences) < len(sentences) and len(sentences) > max_sentences:
+        truncation_msg = "\n...[summary truncated]..."
+    
+    return "\n".join(summary_sentences) + truncation_msg
 
 if __name__ == "__main__":
     # Usage: python3 summarize_report.py <topic> <content> [--max_sentences <num>]
@@ -40,7 +56,12 @@ if __name__ == "__main__":
     topic = args[0]
     raw_content = args[1]
     
-    max_sentences = 5 # Default
+    # Input validation
+    if not raw_content:
+        print("Error: Content cannot be empty.")
+        sys.exit(1)
+    
+    max_sentences = 5  # Default
     
     i = 2
     while i < len(args):
@@ -55,19 +76,25 @@ if __name__ == "__main__":
             i += 1
         i += 1
     
-    date_str = datetime.datetime.now().strftime("%Y-%m-%d")
-    
-    summary = summarize_text(raw_content, topic, max_sentences)
-    
-    report = f"""
+    try:
+        date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+        summary = summarize_text(raw_content, topic, max_sentences)
+        
+        if not summary:
+            summary = "No summary could be generated from the provided content."
+        
+        report = f"""
 # Research Note: {topic}
 **Date:** {date_str}
-
+ 
 ## Key Findings (Summarized)
 {summary}
-
+ 
 ## Analysis
 - [ ] Verified Source
 - [ ] Relevancy Score: High
 """
-    print(report)
+        print(report)
+    except Exception as e:
+        print(f"Error generating summary: {e}")
+        sys.exit(1)

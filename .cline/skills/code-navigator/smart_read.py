@@ -2,68 +2,95 @@ import sys
 import re
 
 
-def read_chunk(filepath, start_line, end_line, pattern=None, context_lines=0):
-    try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            lines = f.readlines()
+def _find_matched_line_numbers(lines, pattern, context_lines):
+    """Find all line numbers that match the pattern including context lines."""
+    compiled_pattern = re.compile(pattern)
+    matched_line_numbers = set()
+    
+    for i, line in enumerate(lines):
+        if compiled_pattern.search(line):
+            matched_line_numbers.add(i)
+            # Add context lines around the match
+            start_context = max(0, i - context_lines)
+            end_context = min(len(lines), i + context_lines + 1)
+            for j in range(start_context, end_context):
+                matched_line_numbers.add(j)
+    
+    return sorted(matched_line_numbers)
 
-        total_lines = len(lines)
-        results = []
 
-        if pattern:
-            compiled_pattern = re.compile(pattern)
-            matched_line_numbers = set()
-
-            for i, line in enumerate(lines):
-                if compiled_pattern.search(line):
-                    matched_line_numbers.add(i)
-                    for j in range(
-                        max(0, i - context_lines), min(total_lines, i + context_lines + 1)
-                    ):
-                        matched_line_numbers.add(j)
-
-            sorted_matched_line_numbers = sorted(list(matched_line_numbers))
-
-            if not sorted_matched_line_numbers:
-                return f"--- FILE: {filepath} ({total_lines} lines) ---\n--- NO MATCHES FOUND FOR PATTERN '{pattern}' ---\n--- END CHUNK ---"
-
-            current_block_start = -1
-            current_block_end = -1
-
-            for line_num in sorted_matched_line_numbers:
-                if current_block_start == -1:
-                    current_block_start = line_num
-                    current_block_end = line_num
-                elif line_num <= current_block_end + 1:
-                    current_block_end = line_num
-                else:
-                    results.append((current_block_start, current_block_end))
-                    current_block_start = line_num
-                    current_block_end = line_num
-            results.append((current_block_start, current_block_end))
-
-            output_lines = [f"--- FILE: {filepath} ({total_lines} lines) ---"]
-            output_lines.append(f"--- MATCHES FOR PATTERN '{pattern}' with {context_lines} CONTEXT LINES ---")
-            for block_start, block_end in results:
-                output_lines.append(f"--- LINES {block_start + 1} to {block_end + 1} ---")
-                output_lines.extend(lines[block_start : block_end + 1])
-            output_lines.append("--- END CHUNK ---")
-            return "".join(output_lines)
-
+def _group_into_blocks(sorted_line_numbers):
+    """Group consecutive line numbers into blocks."""
+    if not sorted_line_numbers:
+        return []
+    
+    results = []
+    current_block_start = sorted_line_numbers[0]
+    current_block_end = sorted_line_numbers[0]
+    
+    for line_num in sorted_line_numbers[1:]:
+        if line_num <= current_block_end + 1:
+            current_block_end = line_num
         else:
-            # Adjust 1-based index to 0-based
-            start_idx = max(0, start_line - 1)
-            end_idx = min(total_lines, end_line)
+            results.append((current_block_start, current_block_end))
+            current_block_start = line_num
+            current_block_end = line_num
+    
+    results.append((current_block_start, current_block_end))
+    return results
 
-            chunk = "".join(lines[start_idx:end_idx])
 
-            output = f"""
+def _format_pattern_output(filepath, lines, blocks, pattern, context_lines, total_lines):
+    """Format the output for pattern matching results."""
+    output_lines = [f"--- FILE: {filepath} ({total_lines} lines) ---"]
+    output_lines.append(f"--- MATCHES FOR PATTERN '{pattern}' with {context_lines} CONTEXT LINES ---")
+    
+    for block_start, block_end in blocks:
+        output_lines.append(f"--- LINES {block_start + 1} to {block_end + 1} ---")
+        output_lines.extend(lines[block_start : block_end + 1])
+    
+    output_lines.append("--- END CHUNK ---")
+    return "".join(output_lines)
+
+
+def _format_range_output(filepath, lines, start_line, end_line, total_lines):
+    """Format the output for line range results."""
+    # Adjust 1-based index to 0-based
+    start_idx = max(0, start_line - 1)
+    end_idx = min(total_lines, end_line)
+
+    chunk = "".join(lines[start_idx:end_idx])
+
+    output = f"""
 --- FILE: {filepath} ({total_lines} lines) ---
 --- SHOWING LINES {start_line} to {end_line} ---
 {chunk}
 --- END CHUNK ---
 """
-            return output
+    return output
+
+
+def read_chunk(filepath, start_line, end_line, pattern=None, context_lines=0):
+    """Read and display a chunk of a file, either by line range or pattern matching."""
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+        total_lines = len(lines)
+
+        if pattern:
+            # Pattern matching mode
+            matched_line_numbers = _find_matched_line_numbers(lines, pattern, context_lines)
+            
+            if not matched_line_numbers:
+                return f"--- FILE: {filepath} ({total_lines} lines) ---\n--- NO MATCHES FOUND FOR PATTERN '{pattern}' ---\n--- END CHUNK ---"
+            
+            blocks = _group_into_blocks(matched_line_numbers)
+            return _format_pattern_output(filepath, lines, blocks, pattern, context_lines, total_lines)
+        else:
+            # Line range mode
+            return _format_range_output(filepath, lines, start_line, end_line, total_lines)
+            
     except Exception as e:
         return f"Error reading file: {str(e)}"
 

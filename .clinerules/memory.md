@@ -1,27 +1,27 @@
-# Memory Policy
+# Memory Policy (MCP-Enhanced)
 
-Use memory as an optional accelerator, not a mandatory pre-read of large docs.
+Use the `memory` MCP server as the primary store for persistent facts to keep the system prompt lean.
 
-## What to Store
+## What to Store (via `memory` MCP)
 
-- Stable project conventions.
-- Architectural decisions and tradeoffs.
-- Reusable run/test commands.
-- Known pitfalls and gotchas.
+- Stable project conventions (naming, linting, structure).
+- Architectural decisions and trade-offs.
+- Frequently used or project-specific shell commands.
+- Known pitfalls, technical debt, and "gotchas."
 
-## What Not to Store
+## Interaction Rules
 
-- Large copied logs.
-- Generated files or lockfile details.
-- Repetitive status text from prior turns.
+- **Store:** When a new convention is agreed upon or a significant design decision is made, use `memory` to save it.
+- **Retrieve:** Check `memory` before starting a task to ensure compliance with existing decisions.
+- **Update:** If a "fact" changes, update the memory entry immediately.
 
-## Update Triggers
+## What NOT to Store
 
-- Significant architecture changes.
-- New conventions that affect future edits.
-- User request to update memory.
+- Large copied logs or raw tool outputs (link to them instead).
+- Ephemeral task status (use chat for this).
+- Code blocks (reference the file path instead).
 
-## Token-Efficient Practice
+## Policy Maintenance
 
-- Prefer short, factual bullet points.
-- Link to files/commands instead of repeating long prose.
+- This file (`memory.md`) defines the _policy_.
+- The `memory` MCP server holds the _data_.

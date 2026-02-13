@@ -1,51 +1,50 @@
-# System Constants
-[model]
-name = "devstral-2-small"
-provider = "openai-compatible"
-temperature = 0.2
-max_tokens = 2048
-enforce_context_only = true
+# Mistral Vibe Configuration for Devstral 2 Small
+active_model = "devstral-2-small"
+system_prompt_id = "vibe_precision"
+auto_compact_threshold = 32000    # Frequent compaction to keep context dense
+include_model_info = true
+include_project_context = true
 
-# Retrieval-Augmented Generation Settings
-[retrieval]
-enabled = true
-type = "local_index"
-vector_store = "faiss"            # FAISS for local semantic retrieval
-embedding_model = "hnsw_local"    # Local embedding strategy
-top_k = 8                         # Retrieving top 8 context chunks
-min_relevance_score = 0.15        # Lower threshold for relevance filtering
-index_refresh_interval = "daily"
+[[providers]]
+name = "openai-local"
+api_base = "http://localhost:8080/v1" # Replace with your endpoint
+api_key_env_var = "OPENAI_API_KEY"
+api_style = "openai"
+backend = "generic"
+# Recommended: disable streaming if tool calls are unstable
+# stream = false 
 
-# Hallucination Detection
-[hallucination_detection]
-enabled = true
-framework = "token_level_detector"   # Open-source detector (e.g., LettuceDetect)
-model_path = "./detectors/lettuce"    # Local path to detector model
-confidence_threshold = 0.7            # Flag outputs < 0.7 support
+# --- MCP SERVERS (Local, Open-Source, No API Keys) ---
 
-# Reasoning & Prompt Templates
-[reasoning_templates]
-cove_chain_enabled = true             # Chain-of-verification prompts
-structured_prompt_enabled = true
+[[mcp_servers]]
+name = "sequential_thinking"
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
 
-# Logging & Feedback
-[logging]
-enabled = true
-log_level = "info"
-log_queries = true             # Track queries for missing content
-log_retrieval_scores = true
+[[mcp_servers]]
+name = "context7"
+command = "npx"
+args = ["-y", "context7-mcp"]
 
-# Safety & Abstention
-[guardrails]
-refuse_on_no_context = true
-abstention_phrase = "I don’t have enough information to answer that question."
+[[mcp_servers]]
+name = "openwebsearch"
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-fetch"]
 
-# Fallback Handling
-[fallback]
-retry_with_expanded_context = true
-max_retry_expansions = 2
+# ADDITION 1: Git MCP for factual version control state
+[[mcp_servers]]
+name = "git"
+command = "uvx"
+args = ["mcp-server-git"]
 
-# Admin & Maintenance
-[admin]
-index_rebuild_threshold = 100      # Number of unknown queries to trigger rebuild
-reset_on_index_update = false
+# ADDITION 2: Filesystem MCP for precise file tree navigation
+[[mcp_servers]]
+name = "filesystem"
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "."]
+
+[tools]
+# Ensure small model doesn't over-rely on bash for simple reads
+disabled_tools = [] 
+[tools.bash]
+permission = "ask" # Safety first for smaller models

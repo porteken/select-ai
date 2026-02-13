@@ -2,9 +2,10 @@
 
 Usage: `Apply workflow: .clinerules/workflows/research.md`
 
-- [ ] Define the specific question and confidence target.
-- [ ] Prefer official docs/specs/repositories first.
-- [ ] Use web-search for time-sensitive claims and model/provider behavior.
-- [ ] Capture only relevant facts with source URLs and dates.
+- [ ] Use `sequential-thinking` to define the specific question and research plan.
+- [ ] Ground library/framework questions using `context7` official docs first.
+- [ ] Use `openwebsearch` for time-sensitive claims, benchmarks, or community consensus.
+- [ ] Use `everything` to find internal project references if researching existing code.
+- [ ] Capture relevant facts with source URLs and dates (use `summarize_report.py` for long content).
 - [ ] Mark uncertain or conflicting findings explicitly.
-- [ ] Provide a concise conclusion with citations.
+- [ ] Provide a concise conclusion with citations and suggest next steps.
