@@ -5,10 +5,13 @@ description: MCP-first code discovery and surgical file reading to reduce token 
 
 # Code Navigator Protocol (Claude 4.5 Optimized)
 
+Use MCP servers from `cline.mcp.json`.
+
 ## 1. Search First
 
 - Find symbols/call sites before reading code.
-- Prefer `desktop-commander` search tools, fallback to `rg`.
+- Prefer `rg` search for fast symbol/call-site discovery.
+- Use `filesystem` MCP for targeted project-root reads when helpful.
 
 ## 2. Surgical Reads
 

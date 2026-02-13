@@ -1,13 +1,14 @@
 # General MCP Workflow
 
 Usage: `Apply workflow: .clinerules/workflows/cline.md`
+MCP tools for this workflow are defined in `cline.mcp.json`.
 
 1. Discovery
-   - [ ] Search first (`rg` or `desktop-commander` search).
+   - [ ] Search first (`rg`).
    - [ ] Read only targeted code ranges.
 
 2. Grounding
-   - [ ] Query `context-7` for external library APIs before implementation.
+   - [ ] Query `context7` for external library APIs before implementation.
    - [ ] Use `web-search` when information is time-sensitive or uncertain.
 
 3. Implementation

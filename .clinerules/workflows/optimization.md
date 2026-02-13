@@ -8,7 +8,7 @@ Usage: `Apply workflow: .clinerules/workflows/optimization.md`
 
 2. Discovery
 
-- [ ] Use search first (`rg` or `desktop-commander` search).
+- [ ] Use search first (`rg`).
 - [ ] Read only minimal ranges needed for the next edit.
 
 3. Editing

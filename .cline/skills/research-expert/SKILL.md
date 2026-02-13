@@ -8,13 +8,16 @@ description: Deep research specialist. Use when the user asks to research, inves
 ## Goal
 
 Produce grounded conclusions with minimal context bloat.
+Use MCP servers from `cline.mcp.json`.
 
 ## Process
 
 1. Discovery
 
 - Prefer official docs/specs/repos first.
-- Use web-search for time-sensitive or provider-specific behavior.
+- Use `context7` first for library/framework docs.
+- Use `openwebsearch` for time-sensitive or provider-specific behavior.
+- Use `rg` for internal codebase discovery.
 
 2. Extraction
 
