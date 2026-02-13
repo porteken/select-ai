@@ -1,27 +1,31 @@
 ---
 name: research-expert
-description: Deep research specialist. Use when the user asks to "research", "investigate", or "find info" on a topic.
+description: Deep research specialist. Use when the user asks to research, investigate, compare, or verify current information.
 ---
 
-# Research Expert Protocol
+# Research Expert Protocol (Claude 4.5 Optimized)
 
 ## Goal
 
-Conduct thorough research using local tools without hallucinating.
+Produce grounded conclusions with minimal context bloat.
 
 ## Process
 
-1.  **Discovery**:
-    - Use `web-search` (tool: `full-web-search`) to find high-quality sources.
-    - Avoid SEO-spam sites; prefer official docs, GitHub, or reputable blogs.
+1. Discovery
 
-2.  **Extraction**:
-    - For each promising URL, use `web-search` (tool: `get-single-web-page-content`).
-    - **IMMEDIATE ACTION**: Do not dump the full text into chat. Pass the text to the `summarize_report.py` script provided in this skill directory.
+- Prefer official docs/specs/repos first.
+- Use web-search for time-sensitive or provider-specific behavior.
 
-3.  **Synthesis**:
-    - Run the python script to generate a structured summary.
-    - Command: `python3 ~/.cline/skills/research-expert/summarize_report.py "Topic Name" "Raw Content Here..."`
+2. Extraction
 
-4.  **Final Output**:
-    - Present the aggregated findings in Markdown.
+- Capture only claim-relevant passages.
+- Record source URL and date for each key fact.
+
+3. Synthesis
+
+- Resolve conflicts explicitly; do not average contradictory claims.
+- Mark uncertain findings instead of guessing.
+
+4. Output
+
+- Deliver concise recommendations with citations and concrete configuration changes.

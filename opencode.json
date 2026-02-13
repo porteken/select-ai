@@ -1,0 +1,68 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "devstral-small-2",
+  // 1. Strict Guidelines for Small Models
+  "instructions": [
+    "instructions.md",
+    "Verify every code change using 'mcp-language-server' diagnostics before finishing.",
+    "Use 'sequential-thinking' to break tasks into steps. Do not attempt large refactors in one go.",
+    "Run 'git_status' and 'git_diff' after edits to confirm changes match your plan."
+  ],
+  // 2. Local Plugins (pty is essential for long-running servers)
+  "plugins": ["opencode-pty", "opencode-md-table-formatter"],
+  // 3. Permissions (Strict 'ask' ensures you remain in control)
+  "permission": {
+    "edit": "ask",
+    "bash": "ask"
+  },
+  // 4. MCP Servers (The "External Brain" Stack)
+  "mcpServers": {
+    // [CRITICAL] Grounding: Syntax & Type Checking
+    // Requires local installation of language servers (e.g., 'npm i -g typescript-language-server')
+    "mcp-language-server": {
+      "type": "local",
+      "command": ["npx", "-y", "mcp-language-server"],
+      "enabled": true
+    },
+    // [CRITICAL] Grounding: Git State & History
+    // Allows the model to see what it changed via 'git diff'
+    "git": {
+      "type": "local",
+      "command": ["npx", "-y", "mcp-server-git"],
+      "enabled": true
+    },
+    // [CRITICAL] Reasoning: Sequential Planning
+    // Essential for keeping small models on track
+    "sequential-thinking": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "enabled": true
+    },
+    // Documentation: Offline/Local RAG
+    // Index local docs without API keys
+    "local-rag": {
+      "type": "local",
+      "command": ["pipx", "run", "local-faiss-mcp"],
+      "enabled": true
+    },
+    // Documentation: Web Search (Lighter/Faster than Docker)
+    // Uses local browser automation to fetch docs
+    "web-search": {
+      "type": "local",
+      "command": ["npx", "-y", "web-search-mcp"],
+      "enabled": true
+    },
+    // Memory: Project Conventions
+    "memory": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-memory"],
+      "enabled": true
+    },
+    // System: Filesystem Access
+    "desktop-commander": {
+      "type": "local",
+      "command": ["npx", "-y", "@wonderwhy-er/desktop-commander"],
+      "enabled": true
+    }
+  }
+}

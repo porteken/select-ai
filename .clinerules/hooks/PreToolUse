@@ -1,87 +1,73 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-# Read JSON input
 input=$(cat)
-tool=$(echo "$input" | jq -r '.preToolUse.toolName // .tool')
-params=$(echo "$input" | jq -r '.preToolUse.parameters // .args')
+tool=$(echo "$input" | jq -r '.preToolUse.toolName // .tool // empty')
+params=$(echo "$input" | jq -c '.preToolUse.parameters // .args // {}')
 
-# --- PART 1: TOKEN GUARD ---
+if [[ -z "$tool" ]]; then
+  echo '{"cancel": false}'
+  exit 0
+fi
+
+# ---------- Read guard (token + hallucination control) ----------
 if [[ "$tool" == "read_file" ]]; then
-  path=$(echo "$params" | jq -r '.path')
+  path=$(echo "$params" | jq -r '.path // empty')
 
-  # Check for lockfiles and logs
-  if [[ "$path" =~ (package-lock\.json|yarn\.lock|\.log) ]]; then
-    if [[ "$path" == *.log ]]; then
-       echo '{"cancel": true, "errorMessage": "⛔ Use `execute_command` with `tail -n 50` to read logs."}'
-       exit 0
-    fi
-    echo '{"cancel": true, "errorMessage": "⛔ Blocked: Reading lockfiles is token-expensive."}'
-    exit 0
-  fi
-
-
-  # Require surgical reads for large files.
-  if [[ -f "$path" ]]; then
-    line_count=$(wc -l < "$path")
-    if [[ "$line_count" -gt 300 ]]; then
-      echo '{"cancel": true, "errorMessage": "⛔ Large file read blocked (>300 lines). Use `start_search` + targeted reads or smart_read.py ranges."}'
+  if [[ -n "$path" ]]; then
+    # Skip highly noisy or generated files.
+    if [[ "$path" =~ (^|/)(package-lock\.json|yarn\.lock|pnpm-lock\.yaml)$ ]]; then
+      echo '{"cancel": true, "errorMessage": "Blocked lockfile read. Use targeted source files instead."}'
       exit 0
+    fi
+
+    if [[ "$path" =~ (^|/)(node_modules|\.next|dist|build|coverage)(/|$) ]]; then
+      echo '{"cancel": true, "errorMessage": "Blocked generated/dependency path. Read source files instead."}'
+      exit 0
+    fi
+
+    if [[ "$path" == *.log ]]; then
+      echo '{"cancel": true, "errorMessage": "Use terminal tail/head for logs instead of full file reads."}'
+      exit 0
+    fi
+
+    # Session-local redundant read tracking.
+    history_dir=".clinerules/.cache"
+    history_file="$history_dir/read_history.log"
+    mkdir -p "$history_dir"
+
+    if [[ -f "$history_file" ]] && grep -Fxq "$path" "$history_file"; then
+      echo "{\"cancel\": true, \"errorMessage\": \"Redundant read blocked: $path already read this session.\"}"
+      exit 0
+    fi
+
+    echo "$path" >> "$history_file"
+
+    # Encourage surgical reads for large files.
+    if [[ -f "$path" ]]; then
+      line_count=$(wc -l < "$path" | tr -d ' ')
+      if [[ "$line_count" -gt 300 ]]; then
+        echo '{"cancel": true, "errorMessage": "Large file read blocked (>300 lines). Use search + smart_read.py ranges."}'
+        exit 0
+      fi
     fi
   fi
 fi
 
-# --- PART 2: QUALITY GUARD (PRETTIER & LINT) ---
-if [[ "$tool" == "write_to_file" || "$tool" == "write_file" || "$tool" == "edit_block" ]]; then
-  path=$(echo "$params" | jq -r '.path // .target_file')
-  content=$(echo "$params" | jq -r '.content // .new_string')
+# ---------- Write guard (safety + performance) ----------
+if [[ "$tool" == "write_file" || "$tool" == "write_to_file" || "$tool" == "edit_block" ]]; then
+  path=$(echo "$params" | jq -r '.path // .target_file // empty')
 
-  # If path/content are missing, skip non-deterministic checks.
-  if [[ "$path" == "null" || "$content" == "null" ]]; then
-    echo '{"cancel": false}'
-    exit 0
-  fi
-  
-  # Determine extension
-  ext="${path##*.}"
-  
-  # Only check common code files
-  if [[ "$ext" =~ ^(js|ts|jsx|tsx|json|css|md|py)$ ]]; then
-    temp_file=$(mktemp).$ext
-    echo "$content" > "$temp_file"
-    
-    # Check if Prettier is installed and configured
-    if npx prettier --version >/dev/null 2>&1; then
-      # Check for .prettierrc existence
-      if [ ! -f ".prettierrc" ]; then
-        echo "ℹ️ Prettier is installed but no .prettierrc file found. Consider adding one for consistent formatting."
-      fi
-      
-      # Run check
-      if ! npx prettier --check "$temp_file" >/dev/null 2>&1; then
-        rm "$temp_file"
-        echo '{"cancel": true, "errorMessage": "⚠️ Prettier formatting check failed. INSTRUCTION: Please run `npx prettier --write path/to/file` on this content before trying to write again, or ensure your output matches the project style (semi-colons, indentation, etc)."}'
-        exit 0
-      fi
+  if [[ -n "$path" ]]; then
+    if [[ "$path" =~ (^|/)(package-lock\.json|yarn\.lock|pnpm-lock\.yaml)$ ]]; then
+      echo '{"cancel": true, "errorMessage": "Blocked lockfile write. Modify source files and regenerate lockfiles via package manager."}'
+      exit 0
     fi
 
-    # Check ESLint if JS/TS
-    if [[ "$ext" =~ ^(js|ts|jsx|tsx)$ ]] && npx eslint --version >/dev/null 2>&1; then
-       if ! npx eslint "$temp_file" >/dev/null 2>&1; then
-         rm "$temp_file"
-         echo '{"cancel": true, "errorMessage": "⚠️ ESLint syntax errors detected. Check your code logic and types."}'
-         exit 0
-       fi
+    if [[ "$path" =~ (^|/)(node_modules|\.next|dist|build|coverage)(/|$) ]]; then
+      echo '{"cancel": true, "errorMessage": "Blocked write to generated/dependency path."}'
+      exit 0
     fi
-
-    # Check TypeScript if TS/TSX
-    if [[ "$ext" =~ ^(ts|tsx)$ ]] && npx tsc --version >/dev/null 2>&1; then
-      if ! npx tsc --noEmit "$temp_file" >/dev/null 2>&1; then
-        rm "$temp_file"
-        echo '{"cancel": true, "errorMessage": "⚠️ TypeScript compilation errors detected. Check your types and syntax."}'
-        exit 0
-      fi
-    fi
-    rm "$temp_file"
   fi
 fi
 

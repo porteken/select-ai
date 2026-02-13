@@ -1,44 +1,38 @@
-# Cline Operational Rules
+# Cline Operational Rules (Claude 4.5 Sonnet Optimized)
 
-## MCP-first execution
+## Operating Principles
 
-- Prefer MCP tools over long reasoning in chat:
-  1. `desktop-commander` for search/read/edit/process.
-  2. `context-7` for library and framework APIs.
-  3. `web-search` for time-sensitive or unknown external claims.
-  4. `playwright` for browser reproduction and verification.
-- For any third-party API usage or upgrade, resolve docs with `context-7` before editing code.
-- For claims about "latest/current/recent", verify with `web-search` before asserting.
+- Ground first, then answer.
+- Keep context small and stable for cache hits.
+- Use tools for evidence; do not infer from memory when the tool can verify.
 
-## Token economy
+## Tool Priority
 
-- Never read lockfiles (`package-lock.json`, `yarn.lock`) or binaries into context.
-- Never start with whole-file reads on large files; search first, then read targeted ranges.
-- Use `rg` before reading code to locate exact symbols and call sites.
-- Use `.cline/skills/code-navigator/smart_read.py` for focused range or regex reads.
-- Prefer targeted diffs (`git diff -- <path>`) or `git diff --stat`; avoid global large diffs.
+1. `desktop-commander` for local files/processes.
+2. `context-7` for library and framework docs.
+3. `web-search` for time-sensitive or uncertain external claims.
+4. `playwright` for browser/UI reproduction and verification.
 
-## Deterministic quality gates
+## Hallucination Guardrails
 
-- After edits, run relevant checks with `desktop-commander` process tools (`lint`, tests, build as needed).
-- Treat lint/type/test output as source of truth over model inference.
-- If formatting/type checks fail, fix root cause before new edits.
+- Do not claim code behavior without current-session file evidence.
+- If confidence is low, state uncertainty and gather missing evidence.
+- For "latest/current/recent" claims, verify with web grounding before asserting.
 
-## Browser debugging discipline
+## Token Guardrails
 
-- For UI bugs, reproduce with `playwright` first, then inspect console and network traces.
-- Verify the fix with the same interaction path used for reproduction.
-- Use this instrumentation when console capture is needed:
-  ```javascript
-  () => {
-    window.__CLINE_LOGS = [];
-    ['log', 'info', 'warn', 'error'].forEach((t) => {
-      const original = console[t];
-      console[t] = (...args) => {
-        window.__CLINE_LOGS.push(`[${t.toUpperCase()}] ${args.join(' ')}`);
-        original.apply(console, args);
-      };
-    });
-    window.onerror = (msg) => window.__CLINE_LOGS.push(`[FATAL] ${msg}`);
-  };
-  ```
+- Search before reading.
+- Avoid full-file reads when a targeted range is enough.
+- Do not read lockfiles, generated artifacts, or large logs directly.
+- Keep response summaries short unless deep detail is requested.
+
+## Quality Gate
+
+- After edits, run only checks relevant to the changed surface area.
+- Treat lint/type/test results as source of truth over model inference.
+
+## References
+
+- API/provider details: `.clinerules/api-provider.md`
+- Memory policy: `.clinerules/memory.md`
+- Workflows: `.clinerules/workflows/*.md`

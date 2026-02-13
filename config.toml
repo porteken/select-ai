@@ -1,0 +1,51 @@
+# System Constants
+[model]
+name = "devstral-2-small"
+provider = "openai-compatible"
+temperature = 0.2
+max_tokens = 2048
+enforce_context_only = true
+
+# Retrieval-Augmented Generation Settings
+[retrieval]
+enabled = true
+type = "local_index"
+vector_store = "faiss"            # FAISS for local semantic retrieval
+embedding_model = "hnsw_local"    # Local embedding strategy
+top_k = 8                         # Retrieving top 8 context chunks
+min_relevance_score = 0.15        # Lower threshold for relevance filtering
+index_refresh_interval = "daily"
+
+# Hallucination Detection
+[hallucination_detection]
+enabled = true
+framework = "token_level_detector"   # Open-source detector (e.g., LettuceDetect)
+model_path = "./detectors/lettuce"    # Local path to detector model
+confidence_threshold = 0.7            # Flag outputs < 0.7 support
+
+# Reasoning & Prompt Templates
+[reasoning_templates]
+cove_chain_enabled = true             # Chain-of-verification prompts
+structured_prompt_enabled = true
+
+# Logging & Feedback
+[logging]
+enabled = true
+log_level = "info"
+log_queries = true             # Track queries for missing content
+log_retrieval_scores = true
+
+# Safety & Abstention
+[guardrails]
+refuse_on_no_context = true
+abstention_phrase = "I don’t have enough information to answer that question."
+
+# Fallback Handling
+[fallback]
+retry_with_expanded_context = true
+max_retry_expansions = 2
+
+# Admin & Maintenance
+[admin]
+index_rebuild_threshold = 100      # Number of unknown queries to trigger rebuild
+reset_on_index_update = false
