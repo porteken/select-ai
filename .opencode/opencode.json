@@ -1,14 +1,7 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "devstral-small-2",
-  "instructions": [
-    "opencode.md",
-    "MANDATORY WORKFLOW: 1. sequential-thinking (PLAN) -> 2. duckduckgo/context7 (GROUND) -> 3. shell (EXECUTE/VERIFY).",
-    "REASONING: Use <thought> tags to decompose tasks before using any tool.",
-    "GROUNDING: Use context7 for library syntax and duckduckgo for errors. Assume nothing.",
-    "VERIFICATION: Use shell for all file operations and tests (e.g., 'node --check', 'ls', 'cat').",
-    "FORBIDDEN: Hallucinating file paths or API versions. If search fails, stop and report."
-  ],
+  "model": "mistralai/Devstral-Small-2-24B-Instruct-2512",
+  "instructions": ["opencode.md"],
   "plugins": ["opencode-pty", "opencode-md-table-formatter"],
   "permission": {
     "edit": "ask",
@@ -34,6 +27,23 @@
       "type": "local",
       "command": ["npx", "-y", "@prodigy9/mcp-server-shell"],
       "enabled": true
+    }
+  },
+  "agent": {
+    "researcher": {
+      "description": "Context-aware analyst. Prioritizes 'grep' over 'cat' to save tokens.",
+      "prompt": "You are a Principal Analyst. Use the 'context-management' skill. Do not read lockfiles. Provide concise, factual reports.",
+      "tools": {
+        "edit": false,
+        "bash": false
+      }
+    },
+    "maintainer": {
+      "description": "Code maintainer. Verifies context before editing.",
+      "prompt": "You are a Code Maintainer. Always check 'git diff' after edits to ensure no regression. Use sequential-thinking for every task.",
+      "tools": {
+        "edit": "ask"
+      }
     }
   }
 }

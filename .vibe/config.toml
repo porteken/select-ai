@@ -1,0 +1,89 @@
+# ~/.vibe/config.toml
+# MISTRAL VIBE: PRECISION ENGINEERING (DEVSTRAL 24B OPTIMIZED)
+
+# -----------------------------------------------------------------------------
+# CORE SETTINGS
+# -----------------------------------------------------------------------------
+active_agent = "vibe_precision"
+# Use the specific Devstral 2 Small alias for Vibe
+active_model = "devstral-small-latest" 
+temperature = 0.1 # Low temp for precision coding
+
+[features]
+multi_choice_clarification = true
+sequential_thinking_enforced = true
+# Enable native image understanding (Devstral 2 feature)
+vision_enabled = true 
+
+# -----------------------------------------------------------------------------
+# MCP SERVERS (Grounding & Tools)
+# -----------------------------------------------------------------------------
+
+[[mcp_servers]]
+name = "sequential_thinking"
+transport = "stdio"
+command = "uvx"
+args = ["@modelcontextprotocol/server-sequential-thinking"]
+
+[[mcp_servers]]
+name = "duckduckgo"
+transport = "stdio"
+command = "uvx"
+args = ["duckduckgo-mcp-server"]
+
+[[mcp_servers]]
+name = "fetch"
+transport = "stdio"
+command = "uvx"
+args = ["mcp-server-fetch"]
+
+[[mcp_servers]]
+name = "context7"
+transport = "streamable-http"
+url = "https://mcp.context7.com/mcp"
+
+# -----------------------------------------------------------------------------
+# AGENT PROFILES
+# -----------------------------------------------------------------------------
+
+[agent.vibe_precision]
+display_name = "Devstral 24B Precision"
+description = "Agentic coding expert with 256k context and vision support."
+agent_type = "default"
+model = "devstral-small-latest"
+system_prompt_id = "vibe"
+enable_parallel = false # Serial execution prevents logic race conditions
+tools = [
+    "sequential_thinking_thought", 
+    "duckduckgo_search", 
+    "fetch", 
+    "context7_query", 
+    "task", 
+    "ask_user_question", 
+    "read_file", 
+    "write_file", 
+    "bash"
+]
+
+# Native Vibe subagent for heavy reading
+[subagents.explore]
+agent_type = "subagent"
+description = "Read-only subagent for deep codebase scanning."
+model = "devstral-small-latest"
+
+# -----------------------------------------------------------------------------
+# COMMANDS
+# -----------------------------------------------------------------------------
+[commands]
+"/verify" = "verification"
+"/delegate" = "code-architect"
+
+# -----------------------------------------------------------------------------
+# PERMISSIONS
+# -----------------------------------------------------------------------------
+[tools.bash]
+permission = "ask" # Safety first: Ask before running shell commands
+[tools.write_file]
+permission = "always" # Trust the agent to write code
+[tools.read_file]
+permission = "always"

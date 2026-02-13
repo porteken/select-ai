@@ -1,0 +1,6 @@
+name = "vibe_precision"
+display_name = "Precision Agent"
+model = "mistral-large-latest"
+system_prompt_id = "vibe"
+# Parallel tool use is disabled to ensure sequential debugging logic
+enable_parallel = false
