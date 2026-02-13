@@ -1,71 +1,70 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "model": "devstral-small-2",
-  // 1. Strict Guidelines for Small Models
   "instructions": [
     "instructions.md",
-    "Verify every code change using 'cclsp' diagnostics (formerly mcp-language-server) before finishing.",
-    "Use 'sequential-thinking' to break tasks into steps. Do not attempt large refactors in one go.",
-    "Run 'git_status' and 'git_diff' after edits to confirm changes match your plan."
+    "1. PLANNING: Always use 'sequential-thinking' for every task. Never skip steps.",
+    "2. GROUNDING: Before generating code for a library, use 'context7' or 'fetch' to check the current documentation.",
+    "3. VERIFICATION: After editing, run 'cclsp' diagnostics. If valid, use 'shell' to run 'npm test' or 'node --check' to confirm logic.",
+    "4. DIFF CHECK: Run 'git_status' and 'git_diff' to ensure zero unexpected side effects."
   ],
-  // 2. Local Plugins (pty is essential for long-running servers)
   "plugins": ["opencode-pty", "opencode-md-table-formatter"],
-  // 3. Permissions (Strict 'ask' ensures you remain in control)
   "permission": {
     "edit": "ask",
     "bash": "ask"
   },
-  // 4. MCP Servers (The "External Brain" Stack)
   "mcpServers": {
-    // [CRITICAL] Grounding: Syntax & Type Checking
-    // Replaced 'mcp-language-server' with 'cclsp' (Node-based LSP bridge).
-    // Note: 'cclsp' auto-detects languages but may require you to run 'npx cclsp setup' once if defaults fail.
-    "cclsp": {
-      "type": "local",
-      "command": ["npx", "-y", "cclsp"],
-      "enabled": true
-    },
-    // [CRITICAL] Grounding: Git State & History
-    // Replaced 'mcp-server-git' with '@mseep/git-mcp-server' (Verified Node.js implementation).
-    "git": {
-      "type": "local",
-      "command": ["npx", "-y", "@mseep/git-mcp-server"],
-      "enabled": true
-    },
-    // [CRITICAL] Reasoning: Sequential Planning
-    // Essential for keeping small models on track
+    // [CRITICAL] Reasoning & Planning
     "sequential-thinking": {
       "type": "local",
       "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
       "enabled": true
     },
-    // Documentation: Offline/Local RAG
-    // Replaced Python 'local-faiss-mcp' with 'mcp-local-rag' (Node/LanceDB).
-    // Indexes the current directory (".") by default.
-    "local-rag": {
+    // [NEW] Grounding: Documentation (User Requested)
+    "context7": {
       "type": "local",
-      "command": ["npx", "-y", "mcp-local-rag"],
-      "env": {
-        "BASE_DIR": "."
-      },
+      "command": ["npx", "-y", "@upstash/context7-mcp"],
       "enabled": true
     },
-    // Documentation: Web Search (Lighter/Faster than Docker)
+    // [NEW] Grounding: Deep-Dive Web Content
+    // Allows reading full documentation pages found via web-search.
+    "fetch": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-fetch"],
+      "enabled": true
+    },
+    // [NEW] Verification: The "Hallucination Killer"
+    // Allows the model to run `ls`, `npm test`, or `grep` to see if its assumptions are true.
+    "shell": {
+      "type": "local",
+      "command": ["npx", "-y", "@prodigy9/mcp-server-shell"],
+      "enabled": true
+    },
+    // [UPGRADE] Grounding: Official Filesystem
+    // More robust than desktop-commander for standard file ops.
+    "filesystem": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "."],
+      "enabled": true
+    },
+    "cclsp": {
+      "type": "local",
+      "command": ["npx", "-y", "cclsp"],
+      "enabled": true
+    },
     "web-search": {
       "type": "local",
       "command": ["npx", "-y", "web-search-mcp"],
       "enabled": true
     },
-    // Memory: Project Conventions
+    "git": {
+      "type": "local",
+      "command": ["npx", "-y", "@mseep/git-mcp-server"],
+      "enabled": true
+    },
     "memory": {
       "type": "local",
       "command": ["npx", "-y", "@modelcontextprotocol/server-memory"],
-      "enabled": true
-    },
-    // System: Filesystem Access
-    "desktop-commander": {
-      "type": "local",
-      "command": ["npx", "-y", "@wonderwhy-er/desktop-commander"],
       "enabled": true
     }
   }

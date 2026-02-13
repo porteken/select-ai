@@ -11,7 +11,6 @@ Use MCP servers from `cline.mcp.json`.
 
 - Find symbols/call sites before reading code.
 - Prefer `rg` search for fast symbol/call-site discovery.
-- Use `filesystem` MCP for targeted project-root reads when helpful.
 
 ## 2. Surgical Reads
 

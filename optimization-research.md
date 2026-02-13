@@ -45,6 +45,5 @@ The created `cline.mcp.json` includes:
 
 - `sequential-thinking` (Reasoning)
 - `git` (State Tracking)
-- `filesystem` (Efficient I/O)
 - `everything-search` (Grounding)
 - `memory` (Convention Persistence)

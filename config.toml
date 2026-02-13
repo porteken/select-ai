@@ -1,20 +1,15 @@
-# Mistral Vibe Configuration for Devstral 2 Small
 active_model = "devstral-2-small"
 system_prompt_id = "vibe_precision"
-auto_compact_threshold = 32000    # Frequent compaction to keep context dense
-include_model_info = true
-include_project_context = true
 
-[[providers]]
-name = "openai-local"
-api_base = "http://localhost:8080/v1" # Replace with your endpoint
-api_key_env_var = "OPENAI_API_KEY"
-api_style = "openai"
-backend = "generic"
-# Recommended: disable streaming if tool calls are unstable
-# stream = false 
+# REDUCE threshold to 16k. 24B models lose reasoning accuracy as context fills.
+# Frequent compaction keeps the most vital instructions and recent facts "near."
+auto_compact_threshold = 16000    
 
-# --- MCP SERVERS (Local, Open-Source, No API Keys) ---
+# DISABLE streaming. 24B models often emit malformed JSON for tool calls 
+# if the stream is interrupted or tokenized poorly.
+stream = false 
+
+# --- VERIFIED NODE/NPM MCP SERVERS (No API Keys Required) ---
 
 [[mcp_servers]]
 name = "sequential_thinking"
@@ -24,27 +19,38 @@ args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
 [[mcp_servers]]
 name = "context7"
 command = "npx"
-args = ["-y", "context7-mcp"]
+args = ["-y", "@upstash/context7-mcp"] # Verified documentation specialist
 
 [[mcp_servers]]
 name = "openwebsearch"
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-fetch"]
+args = ["-y", "openwebsearch"] # Free multi-engine search (No API Key)
 
-# ADDITION 1: Git MCP for factual version control state
-[[mcp_servers]]
-name = "git"
-command = "uvx"
-args = ["mcp-server-git"]
-
-# ADDITION 2: Filesystem MCP for precise file tree navigation
 [[mcp_servers]]
 name = "filesystem"
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-filesystem", "."]
 
-[tools]
-# Ensure small model doesn't over-rely on bash for simple reads
-disabled_tools = [] 
-[tools.bash]
-permission = "ask" # Safety first for smaller models
+[[mcp_servers]]
+name = "memory"
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-memory"] # Knowledge Graph for persistent facts
+
+[[mcp_servers]]
+name = "ripgrep"
+command = "npx"
+args = ["-y", "mcp-ripgrep"] # Fast local search by Matteo Collina (Node-based)
+
+[[mcp_servers]]
+name = "git"
+command = "npx"
+args = ["-y", "@cyanheads/git-mcp-server"] # High-repute Node.js Git wrapper
+
+[[mcp_servers]]
+name = "fetch"
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-fetch"] # Official URL-to-Markdown tool
+
+# --- SKILLS ENGINE ---
+skill_paths = ["./.vibe/skills"]
+enabled_skills = ["precision-engineer"]
