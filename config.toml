@@ -1,52 +1,28 @@
 active_model = "devstral-2-small"
 system_prompt_id = "vibe_precision"
 
-# REDUCE threshold to 16k. 24B models lose reasoning accuracy as context fills.
-# Frequent compaction keeps the most vital instructions and recent facts "near."
+# REDUCE threshold to 16k to maintain Mistral 24B reasoning quality.
 auto_compact_threshold = 16000    
 
-# DISABLE streaming. 24B models often emit malformed JSON for tool calls 
-# if the stream is interrupted or tokenized poorly.
+# DISABLE streaming to prevent malformed JSON tool calls.
 stream = false 
 
-# --- VERIFIED NODE/NPM MCP SERVERS (No API Keys Required) ---
+# --- LEAN MCP STACK ---
 
 [[mcp_servers]]
 name = "sequential_thinking"
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+# Why: Essential for the model to "talk to itself" and solve complex logic.
 
 [[mcp_servers]]
 name = "context7"
 command = "npx"
-args = ["-y", "@upstash/context7-mcp"] # Verified documentation specialist
+args = ["-y", "@upstash/context7-mcp"] 
+# Why: Your required documentation specialist.
 
 [[mcp_servers]]
 name = "openwebsearch"
 command = "npx"
-args = ["-y", "openwebsearch"] # Free multi-engine search (No API Key)
-
-[[mcp_servers]]
-name = "filesystem"
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem", "."]
-
-[[mcp_servers]]
-name = "memory"
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-memory"] # Knowledge Graph for persistent facts
-
-[[mcp_servers]]
-name = "ripgrep"
-command = "npx"
-args = ["-y", "mcp-ripgrep"] # Fast local search by Matteo Collina (Node-based)
-
-[[mcp_servers]]
-name = "git"
-command = "npx"
-args = ["-y", "@cyanheads/git-mcp-server"] # High-repute Node.js Git wrapper
-
-[[mcp_servers]]
-name = "fetch"
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-fetch"] # Official URL-to-Markdown tool
+args = ["-y", "openwebsearch"] 
+# Why: Your required free multi-engine search.
