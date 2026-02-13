@@ -20,13 +20,9 @@
       "args": ["-y", "@upstash/context7-mcp"],
       "disabled": false
     },
-    "openwebsearch": {
+    "duckduckgo": {
       "command": "npx",
-      "args": ["-y", "open-websearch@latest"],
-      "env": {
-        "MODE": "stdio",
-        "DEFAULT_SEARCH_ENGINE": "duckduckgo"
-      },
+      "args": ["-y", "@nickclyde/duckduckgo-mcp-server"],
       "disabled": false
     }
   }

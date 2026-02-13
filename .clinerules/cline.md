@@ -12,7 +12,7 @@ MCP server source of truth: `cline.mcp.json`.
 ## Tool Priority
 
 2. **`context7`**: Primary for library, framework, and external API documentation grounding.
-3. **`openwebsearch`**: Primary for real-time web grounding and late-breaking info.
+3. **`duckduckgo`**: Primary for real-time web grounding and late-breaking info.
 4. **`git`**: Primary for repository state, diffs, and staging verification.
 
 ## Hallucination Guardrails

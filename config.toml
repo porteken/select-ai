@@ -22,7 +22,7 @@ args = ["-y", "@upstash/context7-mcp"]
 # Why: Your required documentation specialist.
 
 [[mcp_servers]]
-name = "openwebsearch"
+name = "duckduckgo"
 command = "npx"
-args = ["-y", "openwebsearch"] 
-# Why: Your required free multi-engine search.
+args = ["-y", "@nickclyde/duckduckgo-mcp-server"] 
+# Why: Your required DuckDuckGo search.

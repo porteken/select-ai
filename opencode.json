@@ -3,9 +3,9 @@
   "model": "devstral-small-2",
   "instructions": [
     "opencode.md",
-    "MANDATORY WORKFLOW: 1. sequential-thinking (PLAN) -> 2. web-search/context7 (GROUND) -> 3. shell (EXECUTE/VERIFY).",
+    "MANDATORY WORKFLOW: 1. sequential-thinking (PLAN) -> 2. duckduckgo/context7 (GROUND) -> 3. shell (EXECUTE/VERIFY).",
     "REASONING: Use <thought> tags to decompose tasks before using any tool.",
-    "GROUNDING: Use context7 for library syntax and web-search for errors. Assume nothing.",
+    "GROUNDING: Use context7 for library syntax and duckduckgo for errors. Assume nothing.",
     "VERIFICATION: Use shell for all file operations and tests (e.g., 'node --check', 'ls', 'cat').",
     "FORBIDDEN: Hallucinating file paths or API versions. If search fails, stop and report."
   ],
@@ -25,9 +25,9 @@
       "command": ["npx", "-y", "@upstash/context7-mcp"],
       "enabled": true
     },
-    "web-search": {
+    "duckduckgo": {
       "type": "local",
-      "command": ["npx", "-y", "web-search-mcp"],
+      "command": ["npx", "-y", "@nickclyde/duckduckgo-mcp-server"],
       "enabled": true
     },
     "shell": {

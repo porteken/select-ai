@@ -13,7 +13,7 @@ A. SEQUENTIAL PLANNING
 
 B. GROUNDING (ANTI-HALLUCINATION)
 
-    Bugs/Uncertainty: Use web-search for error codes, GitHub issues, and StackOverflow.
+    Bugs/Uncertainty: Use duckduckgo for error codes, GitHub issues, and StackOverflow.
 
     Documentation: Use context7 for library-specific syntax and API signatures.
 
@@ -39,7 +39,7 @@ TOOL-SPECIFIC RULES:
 
     sequential-thinking: Mandatory logic mapping. Update the plan if shell outputs contradict your assumptions.
 
-    web-search: Primary debugging tool. If a command fails, search the error message immediately.
+    duckduckgo: Primary debugging tool. If a command fails, search the error message immediately.
 
     context7: Verify current documentation. Training data for 24B models is a fallback, not a source of truth.
 
@@ -57,7 +57,7 @@ COMMUNICATION:
 
     Concise Outputs: 24B reasoning quality degrades as the 16k buffer fills. Avoid summaries.
 
-    Failure Reporting: If a shell command fails, report the error, use web-search to diagnose, and update your sequential-thinking plan.
+    Failure Reporting: If a shell command fails, report the error, use duckduckgo to diagnose, and update your sequential-thinking plan.
 
 HALLUCINATION TRIGGERS (FORBIDDEN):
 
@@ -73,5 +73,5 @@ SUCCESS:
 
 ✅ Every file path verified via shell before use.
 ✅ Every code change syntax-checked via shell immediately.
-✅ Every error diagnosed via web-search before a second attempt.
+✅ Every error diagnosed via duckduckgo before a second attempt.
 ✅ Logical consistency maintained via sequential-thinking.

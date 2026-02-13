@@ -9,7 +9,7 @@ MCP tools for this workflow are defined in `cline.mcp.json`.
 
 2. Grounding
    - [ ] Query `context7` for external library APIs before implementation.
-   - [ ] Use `web-search` when information is time-sensitive or uncertain.
+   - [ ] Use `duckduckgo` when information is time-sensitive or uncertain.
 
 3. Implementation
    - [ ] Make minimal edits (`edit_block` preferred).
