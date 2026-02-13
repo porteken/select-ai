@@ -50,7 +50,3 @@ args = ["-y", "@cyanheads/git-mcp-server"] # High-repute Node.js Git wrapper
 name = "fetch"
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-fetch"] # Official URL-to-Markdown tool
-
-# --- SKILLS ENGINE ---
-skill_paths = ["./.vibe/skills"]
-enabled_skills = ["precision-engineer"]
