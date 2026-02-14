@@ -1,0 +1,5 @@
+display_name = "Explore"
+description = "Read-only subagent for exploring files"
+safety = "neutral"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep"]

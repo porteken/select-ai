@@ -1,0 +1,5 @@
+display_name = "Grounding"
+description = "Read-only web search and documentation grounding agent"
+safety = "neutral"
+agent_type = "subagent"
+enabled_tools = ["context7", "duckduckgo"]
