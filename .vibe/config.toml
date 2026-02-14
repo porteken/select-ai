@@ -1,4 +1,4 @@
-active_model = "devstral-2"
+active_model = "devstral-2-small"
 vim_keybindings = false
 disable_welcome_banner_animation = false
 autocopy_to_clipboard = true
@@ -18,11 +18,11 @@ tool_paths = []
 #mcp_servers = []
 enabled_tools = []
 disabled_tools = []
-agent_paths = []
-enabled_agents = []
+agent_paths = ["/home/kenneth-porter/select-ai/.vibe/agents"]
+enabled_agents = ["explore", "grounding", "refactor"]
 disabled_agents = []
-skill_paths = []
-enabled_skills = []
+skill_paths = ["/home/kenneth-porter/select-ai/.vibe/skills"]
+enabled_skills = ["code-architect", "verification"]
 disabled_skills = []
 
 [[providers]]
@@ -50,6 +50,14 @@ input_price = 0.4
 output_price = 2.0
 
 [[models]]
+name = "labs-devstral-small-2512"
+provider = "mistral"
+alias = "devstral-2-small"
+temperature = 0.1
+input_price = 0.1
+output_price = 0.3
+
+[[models]]
 name = "devstral-small-latest"
 provider = "mistral"
 alias = "devstral-small"
@@ -66,14 +74,14 @@ input_price = 0.0
 output_price = 0.0
 
 [project_context]
-max_chars = 40000
-default_commit_count = 5
-max_doc_bytes = 32768
-truncation_buffer = 1000
-max_depth = 3
-max_files = 1000
-max_dirs_per_level = 20
-timeout_seconds = 2.0
+max_chars = 120000
+default_commit_count = 10
+max_doc_bytes = 65536
+truncation_buffer = 2000
+max_depth = 4
+max_files = 2000
+max_dirs_per_level = 30
+timeout_seconds = 3.0
 
 [session_logging]
 save_dir = "/home/kenneth-porter/.vibe/logs/session"
@@ -89,8 +97,8 @@ denylist = []
 permission = "always"
 allowlist = []
 denylist = []
-max_output_bytes = 64000
-default_max_matches = 100
+max_output_bytes = 128000
+default_max_matches = 200
 default_timeout = 60
 exclude_patterns = [
     ".venv/",
@@ -167,7 +175,7 @@ denylist = [
     "screen",
     "tmux",
 ]
-max_output_bytes = 16000
+max_output_bytes = 32000
 default_timeout = 300
 denylist_standalone = [
     "python",
@@ -187,22 +195,22 @@ denylist_standalone = [
 permission = "always"
 allowlist = []
 denylist = []
-max_read_bytes = 64000
-max_state_history = 10
+max_read_bytes = 128000
+max_state_history = 20
 
 [tools.search_replace]
 permission = "ask"
 allowlist = []
 denylist = []
-max_content_size = 100000
-create_backup = false
+max_content_size = 200000
+create_backup = true
 fuzzy_threshold = 0.9
 
 [tools.write_file]
 permission = "ask"
 allowlist = []
 denylist = []
-max_write_bytes = 64000
+max_write_bytes = 128000
 create_parent_dirs = true
 
 [[mcp_servers]]
@@ -222,3 +230,15 @@ name = "fetch"
 transport = "stdio"
 command = "uvx"
 args = ["mcp-server-fetch"]
+
+[[mcp_servers]]
+name = "git"
+transport = "stdio"
+command = "uvx"
+args = ["mcp-server-git"]
+
+[[mcp_servers]]
+name = "memory"
+transport = "stdio"
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-memory"]

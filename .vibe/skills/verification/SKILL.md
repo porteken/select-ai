@@ -18,10 +18,11 @@ Use this skill when the user requests validation of outputs, quality checks for 
 ## Steps
 
 1. **GROUNDING:** Use `task` to assign a grounding task to the `grounding` subagent for additional web search and documentation context.
-2. **INTEGRATE FINDINGS:** Merge any grounding results into the validation context for more accurate checks.
-3. **LINTING:** Run `npx eslint <files>` with `--fix` where possible to correct style and syntax issues.
-4. **TESTING:** Execute automated tests using `npx vitest run` and `npx playwright test` for unit and integration validation.
-5. **REPORT:** If any step exits with a non-zero status, return specific error logs and guidance.
+2. **HALLUCINATION CHECK:** Cross-reference any generated code or logic against the grounding results. If an API usage or library feature is not found in the documentation, flag it as a potential hallucination.
+3. **INTEGRATE FINDINGS:** Merge any grounding results into the validation context for more accurate checks.
+4. **LINTING:** Run `npx eslint <files>` with `--fix` where possible to correct style and syntax issues.
+5. **TESTING:** Execute automated tests using `npx vitest run` and `npx playwright test` for unit and integration validation.
+6. **REPORT:** If any step exits with a non-zero status, return specific error logs and guidance.
 
 ## Examples
 
