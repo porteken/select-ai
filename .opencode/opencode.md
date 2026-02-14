@@ -15,6 +15,7 @@
 2.  **GROUND:**
     - Use `shell` to map the directory (`ls -R`).
     - Use `context7` to verify library syntax (Devstral knowledge cutoff is late 2025, but libraries change fast).
+    - Use `memory` to retrieve relevant project patterns or previous decisions.
 3.  **THINK:** Call `sequential-thinking`.
     - _Prompt:_ "Given the 128k context, what dependencies does this change have on other files?"
 4.  **EXECUTE:**
@@ -31,4 +32,7 @@
 
 - **Shell:** Your primary interface. Use it to navigate and test.
 - **Context7:** REQUIRED for any library import not in the standard library.
+- **Sequential-Thinking:** Use for complex reasoning and breaking down tasks.
+- **DuckDuckGo:** Use for real-time documentation and error resolution.
+- **Memory:** Use to store and retrieve long-term project knowledge and architectural decisions.
 - **Pty:** Use for long-running processes (e.g., `npm run dev`) if needed.

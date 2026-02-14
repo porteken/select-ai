@@ -2,12 +2,12 @@
   "$schema": "https://opencode.ai/config.json",
   "model": "mistralai/Devstral-Small-2-24B-Instruct-2512",
   "instructions": ["opencode.md"],
-  "plugins": ["opencode-pty", "opencode-md-table-formatter"],
+  "plugin": ["opencode-pty", "@franlol/opencode-md-table-formatter@0.0.3"],
   "permission": {
     "edit": "ask",
     "bash": "ask"
   },
-  "mcpServers": {
+  "mcp": {
     "sequential-thinking": {
       "type": "local",
       "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
@@ -20,12 +20,12 @@
     },
     "duckduckgo": {
       "type": "local",
-      "command": ["npx", "-y", "@nickclyde/duckduckgo-mcp-server"],
+      "command": ["uvx", "duckduckgo-mcp-server"],
       "enabled": true
     },
-    "shell": {
+    "memory": {
       "type": "local",
-      "command": ["npx", "-y", "@prodigy9/mcp-server-shell"],
+      "command": ["npx", "-y", "@modelcontextprotocol/server-memory"],
       "enabled": true
     }
   },
@@ -42,7 +42,7 @@
       "description": "Code maintainer. Verifies context before editing.",
       "prompt": "You are a Code Maintainer. Always check 'git diff' after edits to ensure no regression. Use sequential-thinking for every task.",
       "tools": {
-        "edit": "ask"
+        "edit": true
       }
     }
   }

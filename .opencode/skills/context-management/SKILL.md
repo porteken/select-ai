@@ -27,8 +27,9 @@ Instead of `cat` on large files (>300 lines), use `grep` to extract specific log
 
 If the conversation gets too long (>10 turns) or you feel confused:
 
-1. Run `sequential-thinking` with the prompt: _"Summarize the current state of the code and discard irrelevant history."_
-2. Re-read _only_ the files actively being modified.
+1. Use `memory` to store any critical insights or progress made so far.
+2. Run `sequential-thinking` with the prompt: _"Summarize the current state of the code and discard irrelevant history."_
+3. Re-read _only_ the files actively being modified.
 
 ## 4. Contextual Sanity Check
 

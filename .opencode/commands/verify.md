@@ -27,3 +27,7 @@ If any step fails, do NOT guess the fix.
 1. Copy the error.
 2. Run `duckduckgo` with the error.
 3. Update the `sequential-thinking` plan.
+
+## Phase 4: Knowledge Capture
+
+- [ ] **Persist:** If the fix involved a non-obvious solution or a new pattern, store it in `memory`.
