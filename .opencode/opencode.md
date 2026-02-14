@@ -1,38 +1,39 @@
-# DEVSTRAL-SMALL-2 OPERATING SYSTEM
+# OpenCode Operating Profile
 
-**MODEL SPECS:** 24B Parameters | 128k+ Context | Agentic Tuned
-**CORE PHILOSOPHY:** "Read Big, Think Small." (Load full context, but make atomic changes).
+## Goal
 
-## 1. CONTEXT STRATEGY (128k Window)
+Optimize for low cost and high reliability:
 
-✅ **DO:** Read entire files (`cat`) to understand the full scope of a module.
-✅ **DO:** Read `package.json`, `tsconfig.json`, and `README.md` at the start of every session.
-❌ **AVOID:** Blindly `grep`-ing without understanding the file structure first.
+- Trivial and routine tasks run on `Devstral 2 Small`.
+- Complex, ambiguous, or high-risk tasks escalate to `Claude 4.5 Sonnet`.
 
-## 2. AGENTIC WORKFLOW
+## Routing Policy
 
-1.  **INIT:** Run `/plan` to initialize the thought process.
-2.  **GROUND:**
-    - Use `shell` to map the directory (`ls -R`).
-    - Use `context7` to verify library syntax (Devstral knowledge cutoff is late 2025, but libraries change fast).
-    - Use `memory` to retrieve relevant project patterns or previous decisions.
-3.  **THINK:** Call `sequential-thinking`.
-    - _Prompt:_ "Given the 128k context, what dependencies does this change have on other files?"
-4.  **EXECUTE:**
-    - Edit files fully. **NEVER** use lazy comments like `// ... keep existing code`.
-    - You have the tokens; rewrite the whole function/file to ensure correctness.
+1. Start with the `developer` agent.
+2. Run `/route` (or apply the same thresholds manually).
+3. Escalate to `architect` only when complexity threshold is reached.
+4. Return execution and verification to `developer`.
 
-## 3. VERIFICATION LOOP
+## Tooling Policy
 
-- **Syntax:** `node --check` / `python -m py_compile`.
-- **Logic:** Create a reproduction script `repro.ts` for every bug.
-- **Reality:** If a command fails, search the error with `duckduckgo` immediately.
+- Use built-in `websearch` for external/current facts.
+- Enable websearch with:
+  - `OPENCODE_ENABLE_EXA=1 opencode`
+- Never use DuckDuckGo MCP.
 
-## 4. TOOL USAGE
+## Model-Specific Behavior
 
-- **Shell:** Your primary interface. Use it to navigate and test.
-- **Context7:** REQUIRED for any library import not in the standard library.
-- **Sequential-Thinking:** Use for complex reasoning and breaking down tasks.
-- **DuckDuckGo:** Use for real-time documentation and error resolution.
-- **Memory:** Use to store and retrieve long-term project knowledge and architectural decisions.
-- **Pty:** Use for long-running processes (e.g., `npm run dev`) if needed.
+- `developer` (Devstral): heavy MCP usage (`sequential-thinking`, `memory`, `context7`) plus normal edit/bash workflows.
+- `architect` (Claude): minimal tools and no MCP by default; focus on reasoning and targeted plans.
+
+## Hallucination Controls
+
+- Ground all claims in repo evidence (`read`/`bash`) or external evidence (`websearch`, `context7`).
+- Verify before concluding: run syntax/type/tests relevant to the change.
+- If uncertain, explicitly state uncertainty and gather more evidence before editing.
+
+## Token Controls
+
+- Prefer targeted reads for large files.
+- Avoid lockfiles, generated artifacts, and `node_modules`.
+- Keep handoff context small when escalating to Architect: include only task, constraints, and relevant snippets/files.

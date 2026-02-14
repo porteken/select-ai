@@ -1,29 +1,45 @@
 ---
 description: Generate a context-aware implementation plan.
-agent: researcher
+agent: developer
 ---
 
-# Architectural Plan
+# Implementation Plan
 
-1. **Context Loading**:
-   - List all files relevant to the request.
-   - _Action:_ `cat` these files to load them into the 128k window.
-   - _Action:_ Query `memory` for any relevant historical context or decisions.
+1. **Grounding**
+   - Identify relevant files only.
+   - Load targeted context with `read` or `bash` (`rg`, `ls`, focused file reads).
+   - Use `memory` and `context7` only when needed.
 
-2. **Sequential Thinking**:
-   - Break the task into atomic steps.
-   - Analyze impact on imported modules.
+2. **Complexity Classification**
+   - Score the task with routing rules (scope, ambiguity, impact, reasoning depth, verification burden).
+   - If score is `>=7` or any hard trigger is present, recommend `architect`.
+   - Otherwise keep execution on `developer`.
 
-3. **Output Template**:
+3. **Implementation Plan**
+   - Break into atomic steps.
+   - For each step: files, change type, risk, and verification command.
 
-   ## Proposed Changes
-   - **File:** `src/utils.ts`
-   - **Change:** [Description]
-   - **Verification:** [Command to run]
+4. **Escalation Handoff (if needed)**
+   - Build a minimal handoff packet:
+     - task summary
+     - constraints
+     - relevant files/snippets only
+     - open questions
 
-   ## Unknowns
-   - [ ] Need to check `context7` for...
-   - [ ] Need to verify file existence of...
-   - [ ] Need to confirm `memory` for previous patterns of...
+## Output Template
 
-**Wait for approval.**
+### Task Overview
+
+- **Complexity Score:** [0-10]
+- **Recommended Agent:** [developer/architect]
+- **Why:** [one short paragraph]
+
+### Proposed Changes
+
+- **File:** `path/to/file`
+- **Change:** [what and why]
+- **Verification:** [exact command]
+
+### Unknowns
+
+- [ ] [open issue]

@@ -7,6 +7,11 @@ description: Protocols for deep environment analysis and reality verification.
 
 Use this skill to build a mental map of the project.
 
+## 0. Orchestrated Grounding Roles
+
+- **Developer (The Scout):** Responsible for broad environmental grounding. Performs `ls -R`, reads manifests (`package.json`), and researches libraries via `context7`.
+- **Architect (The Inspector):** Responsible for high-fidelity logic grounding. Verifies specific implementation details, checks for subtle race conditions, and ensures architectural alignment.
+
 ## 1. Project Reconnaissance
 
 - **Manifests:** Read `package.json`, `requirements.txt`, or `Cargo.toml` completely.
@@ -21,5 +26,5 @@ Use this skill to build a mental map of the project.
 
 ## 3. Error Diagnostics
 
-- **Search First:** If `npm test` fails, pass the _entire_ error log to `duckduckgo` (you have the context space).
+- **Search First:** If `npm test` fails, use built-in `websearch` with the _entire_ error log.
 - **No Assumptions:** Never assume a fix works. Run the test again.

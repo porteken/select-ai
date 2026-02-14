@@ -1,6 +1,6 @@
 ---
 description: Run strict verification on code and context.
-agent: maintainer
+agent: developer
 ---
 
 # Verification Suite
@@ -25,7 +25,7 @@ agent: maintainer
 If any step fails, do NOT guess the fix.
 
 1. Copy the error.
-2. Run `duckduckgo` with the error.
+2. Use built-in `websearch` for external debugging context (when needed).
 3. Update the `sequential-thinking` plan.
 
 ## Phase 4: Knowledge Capture

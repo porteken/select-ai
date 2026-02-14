@@ -1,8 +1,38 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "mistralai/Devstral-Small-2-24B-Instruct-2512",
+  "provider": {
+    "devstral": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Devstral External API",
+      "options": {
+        "baseURL": "{env:DEVSTRAL_BASE_URL}",
+        "apiKey": "{env:DEVSTRAL_API_KEY}"
+      },
+      "models": {
+        "small": {
+          "name": "Devstral 2 Small",
+          "id": "mistralai/Devstral-Small-2-24B-Instruct-2512"
+        }
+      }
+    },
+    "claude_external": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Claude External API",
+      "options": {
+        "baseURL": "{env:CLAUDE_BASE_URL}",
+        "apiKey": "{env:CLAUDE_API_KEY}"
+      },
+      "models": {
+        "sonnet45": {
+          "name": "Claude 4.5 Sonnet",
+          "id": "anthropic/claude-4-5-sonnet"
+        }
+      }
+    }
+  },
+  "model": "devstral/small",
   "instructions": ["opencode.md"],
-  "plugin": ["opencode-pty", "@franlol/opencode-md-table-formatter@0.0.3"],
+  "plugin": ["opencode-pty"],
   "permission": {
     "edit": "ask",
     "bash": "ask"
@@ -18,11 +48,6 @@
       "command": ["npx", "-y", "@upstash/context7-mcp"],
       "enabled": true
     },
-    "duckduckgo": {
-      "type": "local",
-      "command": ["uvx", "duckduckgo-mcp-server"],
-      "enabled": true
-    },
     "memory": {
       "type": "local",
       "command": ["npx", "-y", "@modelcontextprotocol/server-memory"],
@@ -30,19 +55,53 @@
     }
   },
   "agent": {
-    "researcher": {
-      "description": "Context-aware analyst. Prioritizes 'grep' over 'cat' to save tokens.",
-      "prompt": "You are a Principal Analyst. Use the 'context-management' skill. Do not read lockfiles. Provide concise, factual reports.",
+    "architect": {
+      "model": "claude_external/sonnet45",
+      "description": "High-precision architect for ambiguous, high-risk, or cross-system problems. MCP use is disabled by default.",
+      "prompt": "You are the Architect. Solve only complex or high-risk tasks. Keep context lean. Do not use MCP tools unless explicitly required for verification. Prefer analysis, plans, and targeted recommendations. Delegate implementation to the developer agent.",
+      "max_steps": 8,
       "tools": {
         "edit": false,
-        "bash": false
+        "bash": false,
+        "mcp__*": false,
+        "websearch": true
       }
     },
-    "maintainer": {
-      "description": "Code maintainer. Verifies context before editing.",
-      "prompt": "You are a Code Maintainer. Always check 'git diff' after edits to ensure no regression. Use sequential-thinking for every task.",
+    "developer": {
+      "model": "devstral/small",
+      "description": "Default execution agent for implementation, testing, and low-to-medium complexity tasks with heavy MCP support.",
+      "prompt": "You are the Developer. Default here unless routing rules escalate to Architect. Use sequential-thinking for planning, memory for project continuity, and context7/websearch for factual grounding. Read only necessary files and verify edits with tests/checks.",
+      "max_steps": 32,
       "tools": {
-        "edit": true
+        "mcp__*": true,
+        "websearch": true,
+        "edit": true,
+        "bash": true
+      }
+    },
+    "router": {
+      "model": "devstral/small",
+      "description": "Low-cost triage agent. Classifies task complexity and delegates to developer or architect.",
+      "prompt": "You are the Router. Use the routing thresholds from rules to classify the task as trivial or complex. If complex, delegate to architect with a minimal context bundle; otherwise delegate to developer.",
+      "mode": "subagent",
+      "max_steps": 6,
+      "tools": {
+        "edit": false,
+        "bash": false,
+        "mcp__*": false,
+        "websearch": false
+      }
+    },
+    "researcher": {
+      "model": "devstral/small",
+      "description": "Context-aware analyst for quick fact gathering with low token overhead.",
+      "prompt": "You are a Principal Analyst. Keep responses concise and factual. Prefer targeted reads. Do not read lockfiles or node_modules. Use built-in websearch only when current external facts are required.",
+      "tools": {
+        "edit": false,
+        "bash": false,
+        "mcp__sequential-thinking__*": true,
+        "mcp__context7__*": true,
+        "websearch": true
       }
     }
   }
