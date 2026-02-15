@@ -18,7 +18,7 @@ agent: test-pilot
 
 ## Phase 3: Runtime
 
-- [ ] **Reproduction:** Run the specific reproduction script `repro.ts`.
+- [ ] **Reproduction (if present):** Run a task-specific repro script when one exists (for example `repro.ts`).
 - [ ] **Test Suite:** Run `npm test` (only if the change is broad).
 
 **FAILURE PROTOCOL:**
@@ -30,4 +30,4 @@ If any step fails, do NOT guess the fix.
 
 ## Phase 4: Knowledge Capture
 
-- [ ] **Persist:** If the fix involved a non-obvious solution or a new pattern, store it in `memory`.
+- [ ] **Persist (if available):** If `memory` is enabled for this agent and the fix introduced a non-obvious pattern, store it.

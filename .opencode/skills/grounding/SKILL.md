@@ -18,7 +18,7 @@ Use this skill to build a mental map of the project.
 - **Manifests:** Read `package.json`, `requirements.txt`, or `Cargo.toml` completely.
 - **Structure:** Run `ls -R` (ignoring `.git` and `node_modules`).
 - **Config:** Read `tsconfig.json`, `.eslintrc`, or `pyproject.toml` to understand linting rules.
-- **History:** Query `memory` for architectural summaries or project-specific constraints.
+- **History:** If `memory` is enabled for the active agent, query it for architectural summaries or project-specific constraints.
 
 ## 2. Documentation Verification
 

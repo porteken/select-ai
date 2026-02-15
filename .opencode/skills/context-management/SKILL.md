@@ -14,8 +14,8 @@ description: Advanced techniques to maintain reasoning quality by managing conte
 
 Opencoder has high reasoning density but is expensive. Keep its context window **lean**.
 
-- **Rule:** Only `read_file` or `grep` the exact lines/blocks necessary for the logic change.
-- **Avoid:** Large `read_file` calls on unrelated files. Rely on the coordinator plan for broader context.
+- **Rule:** Only use targeted reads (`read`, `rg`, or line-ranged file reads) for the exact blocks needed.
+- **Avoid:** Large full-file reads on unrelated files. Rely on the coordinator plan for broader context.
 
 ### Specialist Subagents (Devstral 2 Small)
 
@@ -26,11 +26,11 @@ Devstral subagents are cost-efficient and good for broad discovery.
 
 ## 2. Targeted Reading (The `grep` Strategy)
 
-Instead of `read_file` on large files (>300 lines), use `grep` to extract specific logic.
+Instead of full-file reads on large files (>300 lines), use `rg`/`grep` to extract specific logic.
 
-- **Find Usage:** `grep -r "API_KEY" src/` (Locate variable scope).
-- **Read Function:** `grep -nC 10 "function processData" src/utils.ts` (Read function with 10 lines of padding).
-- **Verify Import:** `grep "import.*Icon" src/components/` (Check dependency usage).
+- **Find Usage:** `rg "API_KEY" src/` (Locate variable scope).
+- **Read Function:** `rg -n "function processData" src/utils.ts` (Then read a small line range around the hit).
+- **Verify Import:** `rg "import.*Icon" src/components/` (Check dependency usage).
 
 ## 3. Dependency Isolation
 
@@ -43,7 +43,7 @@ Instead of `read_file` on large files (>300 lines), use `grep` to extract specif
 
 If the conversation gets too long (>10 turns) or you feel confused:
 
-1. Use `memory` to store any critical insights or progress made so far.
+1. If `memory` is enabled for the active agent, store critical insights or progress.
 2. Run `sequential-thinking` or summarize the active state to discard irrelevant history.
 3. Re-read _only_ the files actively being modified.
 
@@ -51,5 +51,5 @@ If the conversation gets too long (>10 turns) or you feel confused:
 
 Before editing a file:
 
-- Did you read the _latest_ version of it? (Run `read_file` or `grep` again if multiple turns have passed).
+- Did you read the _latest_ version of it? (Run a targeted `read` or `rg` again if multiple turns have passed).
 - **Why?** You might be editing an old version from your context memory, overwriting recent changes.
