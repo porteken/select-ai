@@ -1,31 +1,31 @@
-# /debug - Systematic Bug Resolution
+# /debug - Repro Bug Workflow
 
 Use this workflow when a bug is reproducible but root cause is unclear.
 
-## Step 1: Context Gathering
+## Step 1: Capture Failure
 
-- Identify failing behavior and capture exact error output.
-- Confirm relevant package versions from `package.json`.
+- Capture exact error output and reproduction steps.
+- Confirm relevant package versions.
+- Write a one-sentence failure statement before editing.
 
-## Step 2: Documentation Audit
+## Step 2: Ground Assumptions
 
-- Use `context7` to validate current API usage for the failing path.
-- Check whether implementation diverges from documented behavior.
+- Invoke the `grounding` skill for libraries or APIs touched by the failing path.
+- Check divergence from current docs.
+- Record doc/issue links used.
 
-## Step 3: Global Knowledge Search
+## Step 3: Isolate Root Cause
 
-- If docs do not explain the failure, use `ddg-search`.
-- Run focused queries:
-- `[Exact Error Message] site:github.com`
-- `[Library] [Feature] latest issues`
+- Reduce to the smallest failing path.
+- Form one clear hypothesis and test it with direct evidence.
 
-## Step 4: Proposed Fix
+## Step 4: Apply Minimal Fix
 
 - Explain the root cause using grounded findings.
 - Implement minimal changes.
-- Reference the docs page or issue URL used to justify the fix.
+- Cite the docs/issues that justify behavior assumptions.
 
 ## Step 5: Verification
 
 - Re-run reproduction steps and relevant tests.
-- If failure remains, repeat Step 3 with updated error evidence.
+- If failure remains, repeat from Step 2 with updated error evidence.

@@ -1,33 +1,36 @@
 ---
 name: grounding
-description: Expert in documentation lookup and bug troubleshooting. Use when asked about specific libraries, recent features, or when errors are unclear.
+description: Targeted library/API research with context7 and ddg-search. Use for API syntax, version checks, and issue signals. Use /debug for full bug loops.
 ---
 
-# Technical Grounding and Research Skill
+# Grounding
 
-## Strategy
+Use this skill for focused research, not end-to-end debugging.
 
-1. Documentation first
+## Use For
 
-- Use `context7` to retrieve current API syntax for the exact library and feature.
-- Do not rely on memory for post-cutoff behavior or recent version changes.
+- Exact API syntax/behavior for a library feature.
+- Version-specific or recent behavior checks.
+- Targeted issue evidence when docs are insufficient.
 
-2. Bug investigation
+## Not For
 
-- If docs are insufficient or errors are cryptic, use `ddg-search` to find current GitHub issues and discussions.
-- Prefer queries that include the exact error text and version.
+- Full debug loops (reproduce, isolate, fix, verify). Use `/debug`.
 
-3. Token efficiency
+## Flow
 
-- Request narrow documentation slices instead of broad library dumps.
-- Keep web search results small and inspect only the most relevant source.
+1. `context7` first
 
-## Tool Instructions
+- Resolve library ID if needed.
+- Fetch only the required API surface.
 
-- Context7
-- Resolve library ID first when uncertain.
-- Query docs for only the required API surface.
+2. `ddg-search` second
 
-- DuckDuckGo MCP
-- Use targeted queries such as `site:github.com [error]` and `site:stackoverflow.com [topic]`.
-- Prioritize recent and high-signal sources.
+- Use when docs are insufficient or errors are unclear.
+- Query exact error text + version.
+- Prefer recent, high-signal GitHub/Stack Overflow results.
+
+3. Keep scope narrow
+
+- Avoid broad doc dumps.
+- Inspect only top relevant sources.
