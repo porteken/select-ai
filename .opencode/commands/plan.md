@@ -1,6 +1,6 @@
 ---
 description: Generate a context-aware implementation plan.
-agent: developer
+agent: openagent
 ---
 
 # Implementation Plan
@@ -8,12 +8,12 @@ agent: developer
 1. **Grounding**
    - Identify relevant files only.
    - Load targeted context with `read` or `bash` (`rg`, `ls`, focused file reads).
-   - Use `memory` and `context7` only when needed.
+   - Delegate targeted external checks to `researcher` when needed.
 
 2. **Complexity Classification**
    - Score the task with routing rules (scope, ambiguity, impact, reasoning depth, verification burden).
-   - If score is `>=7` or any hard trigger is present, recommend `architect`.
-   - Otherwise keep execution on `developer`.
+   - If score is `>=7` or any hard trigger is present, recommend `opencoder`.
+   - Otherwise keep execution on `openagent`.
 
 3. **Implementation Plan**
    - Break into atomic steps.
@@ -31,7 +31,7 @@ agent: developer
 ### Task Overview
 
 - **Complexity Score:** [0-10]
-- **Recommended Agent:** [developer/architect]
+- **Recommended Agent:** [openagent/opencoder]
 - **Why:** [one short paragraph]
 
 ### Proposed Changes

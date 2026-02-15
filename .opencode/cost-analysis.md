@@ -43,7 +43,7 @@ Estimated monthly savings: `$13.20` (`~88%` lower Claude spend).
 
 ## Why Savings Improve
 
-- Default model stays on free Devstral.
-- Routing threshold prevents unnecessary Claude usage.
-- Claude receives minimal context and no default MCP expansion.
-- Debugging search uses built-in `websearch` instead of extra MCP tool overhead.
+- Routing threshold prevents unnecessary high-cost model usage.
+- Escalation handoffs keep context lean.
+- Specialist subagents absorb research and testing work at lower cost.
+- Debugging search uses built-in `websearch` instead of extra tool sprawl.

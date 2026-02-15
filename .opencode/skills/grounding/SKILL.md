@@ -9,8 +9,9 @@ Use this skill to build a mental map of the project.
 
 ## 0. Orchestrated Grounding Roles
 
-- **Developer (The Scout):** Responsible for broad environmental grounding. Performs `ls -R`, reads manifests (`package.json`), and researches libraries via `context7`.
-- **Architect (The Inspector):** Responsible for high-fidelity logic grounding. Verifies specific implementation details, checks for subtle race conditions, and ensures architectural alignment.
+- **Openagent (The Coordinator):** Responsible for deciding what evidence is needed and delegating efficiently.
+- **Researcher (The Scout):** Responsible for documentation and API grounding via `context7` and `websearch`.
+- **Opencoder (The Inspector):** Responsible for high-fidelity implementation grounding and correctness checks.
 
 ## 1. Project Reconnaissance
 

@@ -31,7 +31,8 @@
     }
   },
   "model": "devstral/small",
-  "instructions": ["opencode.md"],
+  "default_agent": "openagent",
+  "instructions": ["AGENTS.md"],
   "plugin": ["opencode-pty"],
   "permission": {
     "edit": "ask",
@@ -55,53 +56,86 @@
     }
   },
   "agent": {
-    "architect": {
+    "openagent": {
       "model": "claude_external/sonnet45",
-      "description": "High-precision architect for ambiguous, high-risk, or cross-system problems. MCP use is disabled by default.",
-      "prompt": "You are the Architect. Solve only complex or high-risk tasks. Keep context lean. Do not use MCP tools unless explicitly required for verification. Prefer analysis, plans, and targeted recommendations. Delegate implementation to the developer agent.",
-      "max_steps": 8,
+      "mode": "primary",
+      "description": "Primary OpenAgentsControl coordinator for planning, routing, and approval-gated execution.",
+      "prompt": "{file:agents/openagent.md}",
+      "max_steps": 16,
       "tools": {
-        "edit": false,
-        "bash": false,
+        "edit": true,
+        "bash": true,
         "mcp__*": false,
+        "mcp__context7__*": true,
         "websearch": true
       }
     },
-    "developer": {
-      "model": "devstral/small",
-      "description": "Default execution agent for implementation, testing, and low-to-medium complexity tasks with heavy MCP support.",
-      "prompt": "You are the Developer. Default here unless routing rules escalate to Architect. Use sequential-thinking for planning, memory for project continuity, and context7/websearch for factual grounding. Read only necessary files and verify edits with tests/checks.",
-      "max_steps": 32,
+    "opencoder": {
+      "model": "claude_external/sonnet45",
+      "mode": "primary",
+      "description": "High-accuracy implementation agent for complex coding and code synthesis.",
+      "prompt": "{file:agents/opencoder.md}",
+      "max_steps": 24,
       "tools": {
-        "mcp__*": true,
-        "websearch": true,
         "edit": true,
-        "bash": true
+        "bash": true,
+        "mcp__*": false,
+        "mcp__context7__*": true,
+        "websearch": true
       }
     },
-    "router": {
+    "system-builder": {
       "model": "devstral/small",
-      "description": "Low-cost triage agent. Classifies task complexity and delegates to developer or architect.",
-      "prompt": "You are the Router. Use the routing thresholds from rules to classify the task as trivial or complex. If complex, delegate to architect with a minimal context bundle; otherwise delegate to developer.",
-      "mode": "subagent",
-      "max_steps": 6,
+      "mode": "primary",
+      "description": "Meta-level planner for reusable system workflows, skills, and standards.",
+      "prompt": "{file:agents/system-builder.md}",
+      "max_steps": 10,
       "tools": {
         "edit": false,
         "bash": false,
-        "mcp__*": false,
-        "websearch": false
+        "mcp__sequential-thinking__*": true,
+        "websearch": true
       }
     },
     "researcher": {
       "model": "devstral/small",
-      "description": "Context-aware analyst for quick fact gathering with low token overhead.",
-      "prompt": "You are a Principal Analyst. Keep responses concise and factual. Prefer targeted reads. Do not read lockfiles or node_modules. Use built-in websearch only when current external facts are required.",
+      "mode": "subagent",
+      "description": "Evidence-first analyst for API checks, docs lookup, and bug research.",
+      "prompt": "{file:agents/researcher.md}",
+      "max_steps": 12,
       "tools": {
         "edit": false,
         "bash": false,
         "mcp__sequential-thinking__*": true,
         "mcp__context7__*": true,
         "websearch": true
+      }
+    },
+    "test-pilot": {
+      "model": "devstral/small",
+      "mode": "subagent",
+      "description": "Test execution and failure analysis specialist.",
+      "prompt": "{file:agents/test-pilot.md}",
+      "max_steps": 12,
+      "tools": {
+        "edit": false,
+        "bash": true,
+        "mcp__sequential-thinking__*": true,
+        "websearch": true
+      }
+    },
+    "explainer": {
+      "model": "devstral/small",
+      "mode": "subagent",
+      "description": "Compresses large code or docs into concise, actionable summaries.",
+      "prompt": "{file:agents/explainer.md}",
+      "max_steps": 10,
+      "tools": {
+        "edit": false,
+        "bash": false,
+        "mcp__sequential-thinking__*": true,
+        "mcp__context7__*": true,
+        "websearch": false
       }
     }
   }

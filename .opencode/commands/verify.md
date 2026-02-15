@@ -1,6 +1,6 @@
 ---
 description: Run strict verification on code and context.
-agent: developer
+agent: test-pilot
 ---
 
 # Verification Suite

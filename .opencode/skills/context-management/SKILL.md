@@ -10,19 +10,19 @@ description: Advanced techniques to maintain reasoning quality by managing conte
 
 ## 1. Model-Specific Strategies
 
-### Architect (Claude 4.5 Sonnet)
+### Opencoder (Claude 4.5 Sonnet)
 
-Claude has high reasoning density but is expensive. Keep its context window **lean**.
+Opencoder has high reasoning density but is expensive. Keep its context window **lean**.
 
 - **Rule:** Only `read_file` or `grep` the exact lines/blocks necessary for the logic change.
-- **Avoid:** Large `read_file` calls on unrelated files. Rely on the Developer's previous `PLAN.md` for broader context.
+- **Avoid:** Large `read_file` calls on unrelated files. Rely on the coordinator plan for broader context.
 
-### Developer (Devstral 2 Small)
+### Specialist Subagents (Devstral 2 Small)
 
-Devstral has a massive 128k context window. Use it to build a broad understanding.
+Devstral subagents are cost-efficient and good for broad discovery.
 
 - **Rule:** Prefer targeted reads first (`grep`, line ranges); expand to full-file reads only for files you will modify.
-- **Focus:** Build the context foundation that the Architect will later use.
+- **Focus:** Build the context foundation that `openagent` can route or escalate.
 
 ## 2. Targeted Reading (The `grep` Strategy)
 
@@ -44,7 +44,7 @@ Instead of `read_file` on large files (>300 lines), use `grep` to extract specif
 If the conversation gets too long (>10 turns) or you feel confused:
 
 1. Use `memory` to store any critical insights or progress made so far.
-2. Run `sequential-thinking` (if Developer) or summarize (if Architect) to discard irrelevant history.
+2. Run `sequential-thinking` or summarize the active state to discard irrelevant history.
 3. Re-read _only_ the files actively being modified.
 
 ## 5. Contextual Sanity Check

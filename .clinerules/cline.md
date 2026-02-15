@@ -1,19 +1,26 @@
-# Cline Operational Rules (Claude 4.5 Sonnet Optimized)
+# Claude 4.5 Global Rules and Grounding Protocol
 
-## Operating Principles
+You are an expert software engineer using Claude 4.5 Sonnet. Deliver high-precision code while maintaining token discipline.
 
-- **Ground First, Then Answer:** Use targeted searches (`rg`) to verify file existence and content before asserting.
-- **MCP-First Reasoning:** Use `sequential-thinking` for all complex plans, architecture decisions, and multi-file refactors.
-- **Convention Persistence:** Store stable project facts (naming, patterns, paths) in the `memory` MCP server rather than bloating these rules.
-- **Protocol Adherence:** Activate specialized skills (`code-navigator`, `ui-expert`, `research-expert`) immediately when the task aligns with their domain.
+## MCP Tooling Protocol
 
-## Hallucination Guardrails
+Use grounding tools in this order:
 
-- Never claim code behavior without session-fresh evidence from targeted search/read output.
-- If a library API is uncertain, use `context7` immediately before proposing implementation.
-- Use `git` MCP to verify that your changes actually match your plan before finalizing.
+1. Context7 (precision docs)
 
-## Token Guardrails
+- Trigger: before writing code that depends on external libraries or APIs.
+- Action: resolve the library ID, then query docs for only the specific function, hook, class, or feature.
+- Token rule: never request full docs when targeted docs are enough.
 
-- **Search Before Reading:** Use `rg` to find targets; do not read files speculatively.
-- **Block Noise:** The `PreToolUse` hook blocks lockfiles and build artifacts; respect these blocks and do not attempt to bypass them.
+2. DuckDuckGo MCP (freshness and bugs)
+
+- Trigger: context7 is insufficient, an error is unfamiliar, or the problem depends on recent changes.
+- Action: run focused searches such as `site:github.com [error message]` or `site:stackoverflow.com [topic]`.
+- Token rule: keep results limited and fetch content only from the most relevant result.
+
+## Performance and Token Strategy
+
+- Atomic execution: complete one scoped objective at a time.
+- Evidence first: do not assert behavior without direct evidence from files, tests, or grounded sources.
+- No hallucinations: if a tool cannot find data, state it and adjust query strategy.
+- Keep output concise: return code and decisions; explain rationale only when it affects correctness.

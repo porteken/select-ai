@@ -1,6 +1,6 @@
 ---
 description: Classify task complexity and choose the cost-optimal agent.
-agent: developer
+agent: openagent
 ---
 
 # Task Router
@@ -15,13 +15,13 @@ Score each dimension from 0-2:
 
 ## Decision
 
-- `0-3`: route to `developer`
-- `4-6`: route to `developer` (escalate only if blocked)
-- `>=7`: route to `architect`
+- `0-3`: route to `openagent`
+- `4-6`: route to `openagent` (escalate only if blocked)
+- `>=7`: route to `opencoder`
 
 ## Hard Escalation
 
-Route to `architect` immediately if any of these apply:
+Route to `opencoder` immediately if any of these apply:
 
 - security-sensitive design/fix
 - cross-service architecture change
@@ -31,6 +31,6 @@ Route to `architect` immediately if any of these apply:
 ## Output
 
 - **Score:** [0-10]
-- **Route:** [developer/architect]
+- **Route:** [openagent/opencoder]
 - **Justification:** [short, concrete]
-- **Handoff Packet:** [only if architect]
+- **Handoff Packet:** [only if opencoder]
