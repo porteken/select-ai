@@ -1,43 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "provider": {
-    "devstral": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Devstral External API",
-      "options": {
-        "baseURL": "{env:DEVSTRAL_BASE_URL}",
-        "apiKey": "{env:DEVSTRAL_API_KEY}"
-      },
-      "models": {
-        "small": {
-          "name": "Devstral 2 Small",
-          "id": "mistralai/Devstral-Small-2-24B-Instruct-2512"
-        }
-      }
-    },
-    "claude_external": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Claude External API",
-      "options": {
-        "baseURL": "{env:CLAUDE_BASE_URL}",
-        "apiKey": "{env:CLAUDE_API_KEY}"
-      },
-      "models": {
-        "sonnet45": {
-          "name": "Claude 4.5 Sonnet",
-          "id": "anthropic/claude-4-5-sonnet"
-        }
-      }
-    }
-  },
-  "model": "devstral/small",
-  "default_agent": "openagent",
-  "instructions": ["AGENTS.md"],
-  "plugin": ["opencode-pty"],
-  "permission": {
-    "edit": "ask",
-    "bash": "ask"
-  },
+  "version": "1.1.0",
   "mcp": {
     "sequential-thinking": {
       "type": "local",
@@ -47,100 +10,71 @@
     "context7": {
       "type": "local",
       "command": ["npx", "-y", "@upstash/context7-mcp"],
+      "env": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+      },
       "enabled": true
     },
-    "memory": {
+    "duckduckgo": {
       "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-memory"],
+      "command": [
+        "npx",
+        "-y",
+        "@smithery/cli",
+        "run",
+        "@nickclyde/duckduckgo-mcp-server",
+        "--config",
+        "{}"
+      ],
       "enabled": true
     }
   },
-  "agent": {
-    "openagent": {
-      "model": "claude_external/sonnet45",
+  "agents": {
+    "agent-basic": {
       "mode": "primary",
-      "description": "Primary OpenAgentsControl coordinator for planning, routing, and approval-gated execution.",
-      "prompt": "{file:agents/openagent.md}",
-      "max_steps": 16,
+      "model": "mistral/devstral-small-2-24b-instruct-2512",
       "tools": {
-        "edit": true,
-        "bash": true,
-        "mcp__*": false,
-        "mcp__context7__*": true,
-        "websearch": true
-      }
+        "bash": "allow",
+        "edit": "allow",
+        "mcp_sequential-thinking_*": "allow",
+        "mcp_context7_*": "deny",
+        "mcp_duckduckgo_*": "deny",
+        "subagent_invocation": "allow"
+      },
+      "instructions": "You are a systematic executor. Use sequential-thinking for every task. Delegate docs to @researcher."
     },
-    "opencoder": {
-      "model": "claude_external/sonnet45",
+    "agent-advanced": {
       "mode": "primary",
-      "description": "High-accuracy implementation agent for complex coding and code synthesis.",
-      "prompt": "{file:agents/opencoder.md}",
-      "max_steps": 24,
+      "model": "anthropic/claude-3-5-sonnet",
       "tools": {
-        "edit": true,
-        "bash": true,
-        "mcp__*": false,
-        "mcp__context7__*": true,
-        "websearch": true
-      }
-    },
-    "system-builder": {
-      "model": "devstral/small",
-      "mode": "primary",
-      "description": "Meta-level planner for reusable system workflows, skills, and standards.",
-      "prompt": "{file:agents/system-builder.md}",
-      "max_steps": 10,
-      "tools": {
-        "edit": false,
-        "bash": false,
-        "mcp__sequential-thinking__*": true,
-        "mcp__memory__*": true,
-        "websearch": true
-      }
+        "bash": "allow",
+        "edit": "allow",
+        "mcp_*": "deny",
+        "subagent_invocation": "allow"
+      },
+      "instructions": "You are the Architect. You provide high-level synthesis. You have NO MCP tools. You MUST delegate all research/lookups to @researcher. Do not guess API signatures."
     },
     "researcher": {
-      "model": "devstral/small",
       "mode": "subagent",
-      "description": "Evidence-first analyst for API checks, docs lookup, and bug research.",
-      "prompt": "{file:agents/researcher.md}",
-      "max_steps": 12,
+      "model": "mistral/devstral-small-2-24b-instruct-2512",
       "tools": {
-        "edit": false,
-        "bash": false,
-        "mcp__sequential-thinking__*": true,
-        "mcp__context7__*": true,
-        "mcp__memory__*": true,
-        "websearch": true
-      }
+        "mcp_context7_*": "allow",
+        "mcp_duckduckgo_*": "allow",
+        "edit": "deny",
+        "bash": "deny"
+      },
+      "instructions": "Search Context7 first. If no results, use DuckDuckGo. Return concise Research Briefs only. No raw HTML."
     },
-    "test-pilot": {
-      "model": "devstral/small",
+    "explorer": {
       "mode": "subagent",
-      "description": "Test execution and failure analysis specialist.",
-      "prompt": "{file:agents/test-pilot.md}",
-      "max_steps": 12,
+      "model": "mistral/devstral-small-2-24b-instruct-2512",
       "tools": {
-        "edit": false,
-        "bash": true,
-        "mcp__sequential-thinking__*": true,
-        "mcp__memory__*": true,
-        "websearch": true
-      }
-    },
-    "explainer": {
-      "model": "devstral/small",
-      "mode": "subagent",
-      "description": "Compresses large code or docs into concise, actionable summaries.",
-      "prompt": "{file:agents/explainer.md}",
-      "max_steps": 10,
-      "tools": {
-        "edit": false,
-        "bash": false,
-        "mcp__sequential-thinking__*": true,
-        "mcp__context7__*": true,
-        "mcp__memory__*": true,
-        "websearch": false
-      }
+        "mcp_duckduckgo_*": "allow",
+        "read": "allow",
+        "edit": "deny",
+        "bash": "deny"
+      },
+      "instructions": "Map directory structures and summarize high-level logic. Do not provide implementation details."
     }
   }
 }

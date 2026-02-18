@@ -2,13 +2,13 @@
   "mcpServers": {
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"],
-      "disabled": false
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": {}
     },
-    "ddg-search": {
+    "duckduckgo": {
       "command": "uvx",
       "args": ["duckduckgo-mcp-server"],
-      "disabled": false
+      "env": {}
     }
   }
 }

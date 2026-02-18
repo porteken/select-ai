@@ -1,44 +1,41 @@
-# AGENTS.md
+# OpenCode Agent Protocols
 
-This file defines the main OpenAgentsControl workflow for this OpenCode setup.
+## 1. Primary Agents
 
-## Plan-First Workflow
+### agent-basic (The Executor)
 
-1. `openagent` classifies intent and proposes a concise execution plan.
-2. Require explicit user approval before edits, writes, or command execution with side effects.
-3. Delegate implementation to `opencoder` for complex coding.
-4. Delegate API/docs validation to `researcher`.
-5. Delegate test execution and failure triage to `test-pilot`.
-6. Delegate compression/summaries of large files to `explainer`.
-7. Return a final grounded result with verification evidence.
+- **Model:** Devstral Small
+- **Role:** Systematic task execution, file editing, and routine debugging.
+- **Mandatory Logic:** Must initialize every complex request with the `sequential-thinking` MCP.
+- **Delegation:** Offload all documentation lookups to `@researcher` and filesystem mapping to `@explorer`.
 
-## Approval Gate
+### agent-advanced (The Architect)
 
-- Approval is required before destructive or state-changing actions.
-- If a plan changes after new evidence, present an updated plan and request approval again.
+- **Model:** Claude 3.5 Sonnet
+- **Role:** High-level system design, code review, and complex synthesis.
+- **Constraint:** **Zero MCP tool usage.** This agent must never call a tool directly.
+- **Delegation:** Aggressively delegate research to `@researcher`. If the answer requires an API signature or library detail, the agent _must_ wait for a sub-agent report before providing code.
 
-## Routing
+## 2. Sub-Agents (Parallel-Safe)
 
-- Default agent: `openagent`.
-- Escalate to `opencoder` for high-risk code changes and synthesis tasks.
-- Use `system-builder` for workflow, standards, and long-horizon architecture updates.
+### @researcher (The Scholar)
 
-## Grounding Rules
+- **Scope:** Technical documentation and web search.
+- **Priority:** `Context7` (API/Docs) > `DuckDuckGo` (General Web).
+- **Format:** Must return a "Research Brief":
+  - **Summary:** 2-3 sentences.
+  - **Findings:** Bulleted list of facts/API signatures.
+  - **Source:** URL/Doc version used.
 
-- Do not claim behavior without local evidence (file reads or command output).
-- Do not claim external facts without `websearch` or MCP evidence.
-- Keep context lean: avoid lockfiles, generated artifacts, and `node_modules`.
+### @explorer (The Scout)
 
-## MCP Usage
+- **Scope:** Local codebase mapping and conceptual overviews.
+- **Format:** Must return a "Map":
+  - **Hierarchy:** Tree view of relevant directories.
+  - **Context:** Brief explanation of how files interact.
 
-- Claude agents (`openagent`, `opencoder`) may use only `context7` MCP.
-- `researcher` should prefer `context7` for library/API specifics.
-- `sequential-thinking` and `memory` are reserved for Devstral agents.
-- Use `memory` for durable, non-obvious decisions that should survive sessions.
+## 3. Workflow Rules
 
-## Failure Recovery
-
-1. Stop on failed verification.
-2. Report the exact failure.
-3. Re-plan with minimal additional context.
-4. Re-run verification before final output.
+1. **Context Hygiene:** Sub-agents must never return raw HTML or 100+ line files. They must summarize findings.
+2. **Parallel Execution:** Primary agents should trigger `@researcher` and `@explorer` simultaneously when starting a new feature.
+3. **Fallback Logic:** If `Context7` returns a 404 or empty set, `@researcher` is pre-authorized to immediately use `DuckDuckGo` without asking.

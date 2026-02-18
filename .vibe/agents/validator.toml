@@ -1,0 +1,9 @@
+display_name = "🛡️ Validator"
+description = "Quality control. Audits the Architect's output against Intelligence data, assigns confidence scores, and formats the final response."
+agent_type = "subagent"
+active_model = "devstral-2-small"
+system_prompt_id = "validator"
+auto_approve = true
+safety = "safe"
+
+enabled_tools = ["read_file", "python"]
