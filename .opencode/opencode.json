@@ -1,80 +1,26 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "version": "1.1.0",
+  "instructions": ["~/.config/opencode/plugin/shell-strategy/shell_strategy.md"],
+  "plugin": [
+    "opencode-pty",
+    "@tarquinen/opencode-dcp@latest",
+    "@franlol/opencode-md-table-formatter@0.0.3"
+  ],
+  "permission": {
+    "edit": "allow",
+    "bash": "allow",
+    "task": "deny"
+  },
   "mcp": {
-    "sequential-thinking": {
-      "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
-      "enabled": true
-    },
     "context7": {
       "type": "local",
       "command": ["npx", "-y", "@upstash/context7-mcp"],
-      "env": {
-        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
-      },
       "enabled": true
     },
-    "duckduckgo": {
+    "playwright": {
       "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@smithery/cli",
-        "run",
-        "@nickclyde/duckduckgo-mcp-server",
-        "--config",
-        "{}"
-      ],
+      "command": ["npx", "@playwright/mcp@latest"],
       "enabled": true
-    }
-  },
-  "agents": {
-    "agent-basic": {
-      "mode": "primary",
-      "model": "mistral/devstral-small-2-24b-instruct-2512",
-      "tools": {
-        "bash": "allow",
-        "edit": "allow",
-        "mcp_sequential-thinking_*": "allow",
-        "mcp_context7_*": "deny",
-        "mcp_duckduckgo_*": "deny",
-        "subagent_invocation": "allow"
-      },
-      "instructions": "You are a systematic executor. Use sequential-thinking for every task. Delegate docs to @researcher."
-    },
-    "agent-advanced": {
-      "mode": "primary",
-      "model": "anthropic/claude-3-5-sonnet",
-      "tools": {
-        "bash": "allow",
-        "edit": "allow",
-        "mcp_*": "deny",
-        "subagent_invocation": "allow"
-      },
-      "instructions": "You are the Architect. You provide high-level synthesis. You have NO MCP tools. You MUST delegate all research/lookups to @researcher. Do not guess API signatures."
-    },
-    "researcher": {
-      "mode": "subagent",
-      "model": "mistral/devstral-small-2-24b-instruct-2512",
-      "tools": {
-        "mcp_context7_*": "allow",
-        "mcp_duckduckgo_*": "allow",
-        "edit": "deny",
-        "bash": "deny"
-      },
-      "instructions": "Search Context7 first. If no results, use DuckDuckGo. Return concise Research Briefs only. No raw HTML."
-    },
-    "explorer": {
-      "mode": "subagent",
-      "model": "mistral/devstral-small-2-24b-instruct-2512",
-      "tools": {
-        "mcp_duckduckgo_*": "allow",
-        "read": "allow",
-        "edit": "deny",
-        "bash": "deny"
-      },
-      "instructions": "Map directory structures and summarize high-level logic. Do not provide implementation details."
     }
   }
 }

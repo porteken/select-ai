@@ -1,41 +1,46 @@
 # OpenCode Agent Protocols
 
-## 1. Primary Agents
+## 1. Runtime Agent Set
 
-### agent-basic (The Executor)
+## 2. Effective Permission Model
 
-- **Model:** Devstral Small
-- **Role:** Systematic task execution, file editing, and routine debugging.
-- **Mandatory Logic:** Must initialize every complex request with the `sequential-thinking` MCP.
-- **Delegation:** Offload all documentation lookups to `@researcher` and filesystem mapping to `@explorer`.
+### `agent-basic`
 
-### agent-advanced (The Architect)
+- Model: `mistral/devstral-small-2-24b-instruct-2512`
+- Allowed: `bash`, `edit`, `mcp_sequential-thinking_*`, `subagent_invocation`
+- Denied: `mcp_context7_*`, `mcp_duckduckgo_*`
+- Intent: execution-first primary agent with mandatory sequential planning.
 
-- **Model:** Claude 3.5 Sonnet
-- **Role:** High-level system design, code review, and complex synthesis.
-- **Constraint:** **Zero MCP tool usage.** This agent must never call a tool directly.
-- **Delegation:** Aggressively delegate research to `@researcher`. If the answer requires an API signature or library detail, the agent _must_ wait for a sub-agent report before providing code.
+### `agent-advanced`
 
-## 2. Sub-Agents (Parallel-Safe)
+- Model: `anthropic/claude-3-5-sonnet`
+- Allowed: `bash`, `edit`, `subagent_invocation`
+- Denied: `mcp_*`
+- Intent: synthesis-heavy primary agent with no direct MCP usage.
 
-### @researcher (The Scholar)
+### `researcher`
 
-- **Scope:** Technical documentation and web search.
-- **Priority:** `Context7` (API/Docs) > `DuckDuckGo` (General Web).
-- **Format:** Must return a "Research Brief":
-  - **Summary:** 2-3 sentences.
-  - **Findings:** Bulleted list of facts/API signatures.
-  - **Source:** URL/Doc version used.
+- Model: `mistral/devstral-small-2-24b-instruct-2512`
+- Allowed: `mcp_context7_*`, `mcp_duckduckgo_*`
+- Denied: `edit`, `bash`
+- Intent: evidence gathering and API verification.
 
-### @explorer (The Scout)
+### `explorer`
 
-- **Scope:** Local codebase mapping and conceptual overviews.
-- **Format:** Must return a "Map":
-  - **Hierarchy:** Tree view of relevant directories.
-  - **Context:** Brief explanation of how files interact.
+- Model: `mistral/devstral-small-2-24b-instruct-2512`
+- Allowed: `read`, `mcp_duckduckgo_*`
+- Denied: `edit`, `bash`
+- Intent: mapping and high-level local discovery.
 
-## 3. Workflow Rules
+### Markdown agents
 
-1. **Context Hygiene:** Sub-agents must never return raw HTML or 100+ line files. They must summarize findings.
-2. **Parallel Execution:** Primary agents should trigger `@researcher` and `@explorer` simultaneously when starting a new feature.
-3. **Fallback Logic:** If `Context7` returns a 404 or empty set, `@researcher` is pre-authorized to immediately use `DuckDuckGo` without asking.
+- `openagent`, `opencoder`, `explainer`, `test-pilot`, `system-builder` are loaded from `.opencode/agents/*.md`.
+- They inherit baseline runtime permissions unless explicitly overridden in config.
+- Their role definitions live in their prompt files.
+
+## 3. Operating Rules
+
+1. Use `researcher` for API signatures, docs, and external grounding.
+2. Use `explorer` for local structure and conceptual mapping.
+3. Keep subagent outputs summarized; avoid raw HTML and large uncurated dumps.
+4. Prefer parallel delegation (`researcher` + `explorer`) for new feature exploration.

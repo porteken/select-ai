@@ -1,9 +1,9 @@
 display_name = "🔍 Intelligence"
 description = "Information retrieval specialist. Combines broad exploration with deep-dive documentation/source verification."
 agent_type = "subagent"
-active_model = "devstral-2-small"
+active_model = "devstral-small"
 system_prompt_id = "intelligence"
 auto_approve = true
-safety = "neutral"
+safety = "safe"
 
-enabled_tools = ["web_search", "browser", "read_file", "grep", "ls"]
+enabled_tools = ["context7_*", "duckduckgo_*", "read_file", "grep"]

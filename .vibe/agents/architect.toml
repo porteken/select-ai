@@ -1,12 +1,12 @@
 display_name = "🛠️ Architect"
 description = "The builder. Designs technical plans and executes code, file writes, or complex synthesis based on research."
 agent_type = "subagent"
-active_model = "devstral-2-small"
+active_model = "devstral-2"
 system_prompt_id = "architect"
 auto_approve = true
 safety = "destructive"
 
-enabled_tools = ["write_file", "search_replace", "python", "bash", "read_file"]
+enabled_tools = ["write_file", "search_replace", "bash", "read_file", "grep"]
 
 [tools.bash]
 permission = "always"

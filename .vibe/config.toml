@@ -1,18 +1,22 @@
-[core]
-default_model = "mistralai/Devstral-Small-2-24B-Instruct-2512"
-
-# ------------------------------------------------------------------
-# MCP Server Configuration (Required for Researcher Skill)
-# ------------------------------------------------------------------
+active_model = "devstral-2"
+system_prompt_id = "main"
+context_warnings = true
+include_prompt_detail = true
 
 [[mcp_servers]]
 name = "context7"
-type = "stdio"
+transport = "stdio"
 command = "npx"
-args = ["-y", "context7-mcp"]
+args = ["-y", "@upstash/context7-mcp"]
+prompt = "Primary source for official library docs and API references."
+startup_timeout_sec = 20
+tool_timeout_sec = 90
 
 [[mcp_servers]]
 name = "duckduckgo"
-type = "stdio"
+transport = "stdio"
 command = "uvx"
 args = ["duckduckgo-mcp-server"]
+prompt = "Fallback source for recent or uncatalogued information."
+startup_timeout_sec = 20
+tool_timeout_sec = 90
