@@ -51,36 +51,29 @@ jobs:
         run: |
           docker run -d --name sonarqube -p 9000:9000 sonarqube:community
           echo "Waiting for SonarQube to start (this usually takes 1-2 minutes)..."
-          # Poll the API until it responds with an UP status (Timeout after 5 mins)
           timeout 300 bash -c 'until curl -s http://localhost:9000/api/system/status | grep -q "\"status\":\"UP\""; do echo "Waiting..."; sleep 10; done'
           echo "SonarQube is UP and ready!"
-          # Brief buffer to ensure auth backend is fully bootstrapped
           sleep 5
 
       - name: Configure SonarQube & Generate Token
         id: sq-config
         run: |
-          # 1. Change password using form data (-d) instead of query parameters
           echo "Updating default admin password..."
           curl -s -S -u admin:admin -X POST "http://localhost:9000/api/users/change_password" \
-            -d "login=admin&previousPassword=admin&password=admin123"
+            -d "login=admin&previousPassword=admin&password=SecureAdminPass123!"
 
-          # 2. Generate a fresh analysis token using form data
           echo "Generating CI token..."
-          TOKEN_JSON=$(curl -s -S -u admin:admin123 -X POST "http://localhost:9000/api/user_tokens/generate" \
+          TOKEN_JSON=$(curl -s -S -u admin:SecureAdminPass123! -X POST "http://localhost:9000/api/user_tokens/generate" \
             -d "name=ci-token")
 
-          # 3. Parse token from JSON
           TOKEN=$(echo "$TOKEN_JSON" | jq -r '.token')
 
-          # 4. Fail fast if the token is null/empty instead of failing inside Java later
           if [ "$TOKEN" == "null" ] ||[ -z "$TOKEN" ]; then
             echo "ERROR: Failed to generate token. Server responded with:"
             echo "$TOKEN_JSON"
             exit 1
           fi
 
-          # 5. Mask the token in GitHub Actions logs and export it
           echo "::add-mask::$TOKEN"
           echo "SONAR_TOKEN=$TOKEN" >> $GITHUB_ENV
 
@@ -90,9 +83,9 @@ jobs:
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
           SONAR_HOST_URL: http://localhost:9000
         with:
-          # Only output error logs as requested
           args: >
             -Dsonar.log.level=ERROR
+  # ---------------------------------------------
   # ---------------------------------------------
   # ---------------------------------------------
   vitest-unit:
@@ -161,7 +154,7 @@ jobs:
           merge-multiple: true
 
       - name: Merge Vitest unit reports
-        run: npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit
+        run: npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit,dot
 
   playwright-e2e:
     name: Playwright E2E (shard ${{ matrix.shard_index }}/20)
