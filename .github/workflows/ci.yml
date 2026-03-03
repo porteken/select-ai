@@ -60,7 +60,7 @@ jobs:
         run: |
           echo "Updating default admin password..."
           curl -s -S -u admin:admin -X POST "http://localhost:9000/api/users/change_password" \
-            -d "login=admin&previousPassword=admin&password=SecureAdminPass123!"
+            -d "login=admin&previousPassword=admin&password=SecureAdminPass123!" > /dev/null
 
           echo "Generating CI token..."
           TOKEN_JSON=$(curl -s -S -u admin:SecureAdminPass123! -X POST "http://localhost:9000/api/user_tokens/generate" \
@@ -68,7 +68,7 @@ jobs:
 
           TOKEN=$(echo "$TOKEN_JSON" | jq -r '.token')
 
-          if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
+          if [ "$TOKEN" == "null" ] ||[ -z "$TOKEN" ]; then
             echo "ERROR: Failed to generate token. Server responded with:"
             echo "$TOKEN_JSON"
             exit 1
@@ -77,23 +77,33 @@ jobs:
           echo "::add-mask::$TOKEN"
           echo "SONAR_TOKEN=$TOKEN" >> $GITHUB_ENV
 
-      - name: Run SonarScanner
-        uses: SonarSource/sonarqube-scan-action@v4
+      - name: Setup Node for SonarScanner
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run SonarScanner (Errors Only)
         env:
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
           SONAR_HOST_URL: http://localhost:9000
-        with:
-          # Passing everything directly to the CLI guarantees it is read.
-          # You can safely delete sonar-project.properties.
-          args: >
-            -Dsonar.projectKey=select-ai
-            -Dsonar.projectName="select-ai"
-            -Dsonar.sources=.
-            -Dsonar.exclusions=node_modules/**,.next/**,out/**,coverage/**,**/*.test.*,**/*.spec.*,public/**
-            -Dsonar.tests=.
-            -Dsonar.test.inclusions=**/*.test.*,**/*.spec.*
-            -Dsonar.test.exclusions=node_modules/**,.next/**
-            -Dsonar.log.level=ERROR
+        run: |
+          # 1. Enforce pipeline failure if the scanner itself fails, even through the pipe
+          set -o pipefail
+
+          # 2. Install the official SonarScanner CLI wrapper silently
+          npm install -g sonarqube-scanner --silent
+
+          # 3. Run the scanner and filter out all ' INFO ' lines.
+          #    This guarantees only ERROR, WARN, and stack traces will be printed.
+          sonar-scanner \
+            -Dsonar.projectKey=select-ai \
+            -Dsonar.projectName="select-ai" \
+            -Dsonar.sources=. \
+            -Dsonar.exclusions=node_modules/**,.next/**,out/**,coverage/**,**/*.test.*,**/*.spec.*,public/** \
+            -Dsonar.tests=. \
+            -Dsonar.test.inclusions=**/*.test.*,**/*.spec.* \
+            -Dsonar.test.exclusions=node_modules/**,.next/** \
+            -Dsonar.log.level=ERROR | awk '!/ INFO /'
   # ---------------------------------------------
   # ---------------------------------------------
   # ---------------------------------------------
