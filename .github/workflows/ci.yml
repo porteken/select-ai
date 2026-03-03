@@ -1,0 +1,249 @@
+name: CI and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-checks:
+    name: Lint and Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - run: npm run lint
+      - run: npm run tsc
+
+  # --- EPHEMERAL SONARQUBE SERVER & SCAN JOB ---
+  sonar-scan:
+    name: SonarQube Server & Scanner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for accurate blame/relevancy in SonarQube
+
+      - name: Increase max_map_count for SonarQube Elasticsearch
+        run: sudo sysctl -w vm.max_map_count=262144
+
+      - name: Start SonarQube Server
+        run: |
+          docker run -d --name sonarqube -p 9000:9000 sonarqube:community
+          echo "Waiting for SonarQube to start (this usually takes 1-2 minutes)..."
+          # Poll the API until it responds with an UP status (Timeout after 5 mins)
+          timeout 300 bash -c 'until curl -s http://localhost:9000/api/system/status | grep -q "\"status\":\"UP\""; do echo "Waiting..."; sleep 10; done'
+          echo "SonarQube is UP and ready!"
+
+      - name: Configure SonarQube & Generate Token
+        id: sq-config
+        run: |
+          # 1. SonarQube forces a password change on first login. Change admin/admin to admin/admin123
+          curl -s -u admin:admin -X POST "http://localhost:9000/api/users/change_password?login=admin&previousPassword=admin&password=admin123"
+
+          # 2. Generate a fresh analysis token
+          TOKEN=$(curl -s -u admin:admin123 -X POST "http://localhost:9000/api/user_tokens/generate?name=ci-token" | jq -r .token)
+
+          # 3. Export to GitHub ENV for the scanner step
+          echo "SONAR_TOKEN=$TOKEN" >> $GITHUB_ENV
+
+      - name: Run SonarScanner
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+          SONAR_HOST_URL: http://localhost:9000
+        with:
+          # Using only ERROR logs as requested
+          args: >
+            -Dsonar.log.level=ERROR
+  # ---------------------------------------------
+  vitest-unit:
+    name: Vitest Unit (shard ${{ matrix.shard_index }}/${{ matrix.shard_total }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard_index: [1, 2, 3, 4, 5]
+        shard_total: [5]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - run: npm run test:unit -- --reporter=blob --shard=${{ matrix.shard_index }}/${{ matrix.shard_total }}
+
+      - name: Upload Vitest unit blob report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-unit-blob-${{ matrix.shard_index }}
+          path: .vitest-reports/
+          include-hidden-files: true
+          retention-days: 1
+
+  merge-vitest-unit:
+    name: Merge Vitest Unit Reports
+    needs: vitest-unit
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Download Vitest unit blob reports
+        uses: actions/download-artifact@v4
+        with:
+          path: all-vitest-unit-blob-reports
+          pattern: vitest-unit-blob-*
+          merge-multiple: true
+
+      - name: Merge Vitest unit reports
+        run: npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit
+
+  playwright-e2e:
+    name: Playwright E2E (shard ${{ matrix.shard_index }}/20)
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        shard_index: [1, 2, 3, 4, 5]
+        shard_total: [5]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Node Dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Get Playwright Version
+        id: playwright-version
+        run: echo "PLAYWRIGHT_VERSION=$(npx playwright --version | awk '{print $2}')" >> $GITHUB_ENV
+
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        id: cache-playwright
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright Browsers & OS Deps
+        if: steps.cache-playwright.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps
+
+      - name: Install Playwright OS Dependencies (Cache Hit)
+        if: steps.cache-playwright.outputs.cache-hit == 'true'
+        run: npx playwright install-deps
+
+      - name: Run Playwright Shard
+        run: npx playwright test --shard=${{ matrix.shard_index }}/20 --reporter=list,blob
+
+      - name: Upload Playwright Blob
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-blob-${{ matrix.shard_index }}
+          path: blob-report/*.zip
+          retention-days: 1
+
+  merge-playwright:
+    name: Merge Playwright Reports
+    needs: playwright-e2e
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Download All Playwright Blobs
+        uses: actions/download-artifact@v4
+        with:
+          path: playwright-blobs
+          pattern: playwright-blob-*
+          merge-multiple: true
+
+      - name: Merge Playwright Reports
+        run: npx playwright merge-reports --reporter=line,html ./playwright-blobs
+        shell: bash
+
+      - name: Upload Playwright HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Check for test failures
+        if: needs.playwright-e2e.result == 'failure'
+        run: |
+          echo "Playwright tests failed in the e2e job. Failing the merge job."
+          exit 1
