@@ -68,7 +68,7 @@ jobs:
 
           TOKEN=$(echo "$TOKEN_JSON" | jq -r '.token')
 
-          if [ "$TOKEN" == "null" ] ||[ -z "$TOKEN" ]; then
+          if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
             echo "ERROR: Failed to generate token. Server responded with:"
             echo "$TOKEN_JSON"
             exit 1
@@ -83,7 +83,16 @@ jobs:
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
           SONAR_HOST_URL: http://localhost:9000
         with:
+          # Passing everything directly to the CLI guarantees it is read.
+          # You can safely delete sonar-project.properties.
           args: >
+            -Dsonar.projectKey=select-ai
+            -Dsonar.projectName="select-ai"
+            -Dsonar.sources=.
+            -Dsonar.exclusions=node_modules/**,.next/**,out/**,coverage/**,**/*.test.*,**/*.spec.*,public/**
+            -Dsonar.tests=.
+            -Dsonar.test.inclusions=**/*.test.*,**/*.spec.*
+            -Dsonar.test.exclusions=node_modules/**,.next/**
             -Dsonar.log.level=ERROR
   # ---------------------------------------------
   # ---------------------------------------------
@@ -154,8 +163,7 @@ jobs:
           merge-multiple: true
 
       - name: Merge Vitest unit reports
-        run: npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit,dot
-
+        run: npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit --reporter=dot
   playwright-e2e:
     name: Playwright E2E (shard ${{ matrix.shard_index }}/20)
     runs-on: ubuntu-latest
